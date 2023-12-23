@@ -16,7 +16,7 @@ ALLOWED_HOSTS: list[str] = ["*"]
 CLIENT_URL = config("FRONTEND_URL")
 
 
-# Application definition
+AUTH_USER_MODEL = "users.ThingbookerUser"
 
 LOCAL_APPS = [
     "thingbooker.users",
