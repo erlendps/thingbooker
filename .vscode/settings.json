@@ -8,5 +8,6 @@
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
   "ruff.path": ["./thingbooker-backend/.venv/bin/ruff"],
-  "cSpell.words": ["thingbooker"]
+  "cSpell.words": ["thingbooker"],
+  "mypy-type-checker.args": ["--config-file=thingbooker-backend/pyproject.toml"]
 }
