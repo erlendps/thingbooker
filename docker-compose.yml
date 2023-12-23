@@ -1,0 +1,24 @@
+#
+# Docker compose file for frontend and backend
+# see docker compose --help for help on using
+# docker compose
+#
+
+version: '1.0'
+
+volumes:
+  postgres_volume:
+
+services:
+  postgres:
+    container_name: "thingbooker-postgres"
+    image: postgres:16beta2-alpine
+    restart: always
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    ports:
+      - ${DB_HOST}:${DB_PORT}:${DB_PORT}
+    environment:
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
