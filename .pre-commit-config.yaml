@@ -1,0 +1,45 @@
+default_stages: [commit, push]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: "locale/.*"
+      - id: end-of-file-fixer
+        exclude: "locale/.*"
+      - id: check-merge-conflict
+      - id: check-json
+        files: '.*\.json'
+      - id: check-yaml
+        files: '.*\.yml|.*\.yaml'
+        exclude: "deployment/.*"
+      - id: mixed-line-ending
+        exclude: "locale/.*"
+      - id: check-added-large-files
+
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: 1.15.0
+    hooks:
+      - id: django-upgrade
+        args: [--target-version, "4.2"]
+        files: 'thingbooker-backend\/.*\.py'
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.1.9
+    hooks:
+      # Run the linter.
+      - id: ruff
+        files: 'thingbooker-backend\/.*\.py'
+        exclude: '(/(\.*|migrations)/)'
+        args: [--fix]
+      # Run the formatter.
+      - id: ruff-format
+        files: 'thingbooker-backend\/.*\.py'
+        exclude: '(/(\.*|migrations)/)'
+
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.5.0
+    hooks:
+      - id: poetry-check
+        args: ["-C", "./thingbooker-backend"]
