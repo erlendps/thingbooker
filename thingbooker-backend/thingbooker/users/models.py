@@ -3,9 +3,18 @@ from __future__ import annotations
 
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import validate_image_file_extension
 from django.db import models
 
 from thingbooker.base_models import ThingbookerModel
+from thingbooker.users.validators import validate_image_is_square
+
+
+def user_avatar_path(instance: ThingbookerUser, filename: str):
+    """Get's the avatar upload path for a given user."""
+
+    extension = filename.split(".")[-1]
+    return f"users/avatars/{instance.id}.{extension}"
 
 
 class ThingbookerUser(AbstractUser, ThingbookerModel):
@@ -13,6 +22,11 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
 
     username = models.EmailField(
         blank=False, verbose_name="email address", unique=True, db_index=True
+    )
+    avatar = models.ImageField(
+        upload_to=user_avatar_path,
+        null=True,
+        validators=[validate_image_file_extension, validate_image_is_square],
     )
 
     def save(self, *args, **kwargs):
@@ -33,7 +47,7 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
     def get_all_groups(self):
         """Fetches all groups for this user."""
 
-        return self.groups.select_related("thingbooker_group")
+        return self.groups.select_related("thingbooker_group").all()
 
 
 class ThingbookerGroup(models.Model):
