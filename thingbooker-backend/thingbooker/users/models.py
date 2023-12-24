@@ -22,3 +22,18 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
             return self.groups.get(pk=group_id)
         except ObjectDoesNotExist:
             return None
+
+    def get_all_groups(self):
+        """Fetches all groups for this user."""
+
+        return self.groups.select_related("thingbooker_group")
+
+
+class ThingbookerGroup(models.Model):
+    """
+    A group is a collection of users.
+
+    In thingbooker, it is used as a convenience to quickly share a new thing.
+    """
+
+    group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="thingbooker_group")
