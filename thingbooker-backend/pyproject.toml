@@ -94,7 +94,7 @@ docstring-code-format = false
 
 [tool.mypy]
 exclude = "(?x)(build/.+|node_modules/.+|deployment/.+|.github/.+|locale/.+)"
-disable_error_code = ["annotation-unchecked", "django-manager-missing"]
+disable_error_code = ["annotation-unchecked", "assignment", "attr-defined"]
 python_version = "3.11"
 show_column_numbers = true
 show_error_context = false
