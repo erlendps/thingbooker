@@ -11,9 +11,16 @@ from thingbooker.base_models import ThingbookerModel
 class ThingbookerUser(AbstractUser, ThingbookerModel):
     """User of thingbooker."""
 
-    email = models.EmailField(
-        blank=False, max_length=254, verbose_name="email address", unique=True
+    username = models.EmailField(
+        blank=False, verbose_name="email address", unique=True, db_index=True
     )
+
+    def save(self, *args, **kwargs):
+        """Set the email field the same as the username (email is username)."""
+
+        if self.email is None:
+            self.email = self.username
+        return super().save(*args, **kwargs)
 
     def get_group_or_none(self, group_id: int) -> Group | None:
         """Fetches the group (only looks at this users group)."""
@@ -34,6 +41,8 @@ class ThingbookerGroup(models.Model):
     A group is a collection of users.
 
     In thingbooker, it is used as a convenience to quickly share a new thing.
+    It also has some extra fields. For now it's nothing extra, but in the future,
+    this allows for easy extension of a group.
     """
 
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="thingbooker_group")
