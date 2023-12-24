@@ -1,11 +1,17 @@
 """This module contains the settings for thingbooker-backend"""
 
 import os
+from datetime import timedelta
 
 from decouple import config
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+#####################
+#####################
+## Django settings ##
+#####################
+#####################
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
@@ -15,8 +21,9 @@ ALLOWED_HOSTS: list[str] = ["*"]
 
 CLIENT_URL = config("FRONTEND_URL")
 
+ROOT_URLCONF = "thingbooker.urls"
 
-AUTH_USER_MODEL = "users.ThingbookerUser"
+WSGI_APPLICATION = "thingbooker.wsgi.application"
 
 LOCAL_APPS = [
     "thingbooker.users",
@@ -24,6 +31,8 @@ LOCAL_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "guardian",
 ]
 
@@ -49,7 +58,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "thingbooker.urls"
 
 TEMPLATES = [
     {
@@ -67,7 +75,10 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "thingbooker.wsgi.application"
+
+#############
+# Databases #
+#############
 
 DATABASES = {
     "default": {
@@ -79,6 +90,12 @@ DATABASES = {
         "PORT": config("DB_PORT"),
     }
 }
+
+##################
+# AUTHENTICATION #
+##################
+
+AUTH_USER_MODEL = "users.ThingbookerUser"
 
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",  # default
@@ -101,8 +118,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
+########################
+# Internationalization #
+########################
 
 LANGUAGE_CODE = "en-us"
 
@@ -112,6 +130,9 @@ USE_I18N = False
 
 USE_TZ = True
 
+####################
+# Static and media #
+####################
 
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "thingbooker", "static")
@@ -121,3 +142,33 @@ MEDIA_URL = "uploads/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "thingbooker", "uploads")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+###################################
+###################################
+## Third-party app configuration ##
+###################################
+###################################
+
+##################
+# REST framework #
+##################
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    )
+}
+
+###################
+# REST simple JWT #
+###################
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer", "JWT"),
+}
