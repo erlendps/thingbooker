@@ -22,7 +22,10 @@ LOCAL_APPS = [
     "thingbooker.users",
 ]
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = [
+    "rest_framework",
+    "guardian",
+]
 
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -66,10 +69,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "thingbooker.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -81,9 +80,10 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",  # default
+    "guardian.backends.ObjectPermissionBackend",
+)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
