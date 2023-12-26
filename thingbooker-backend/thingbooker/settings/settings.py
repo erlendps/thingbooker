@@ -116,7 +116,6 @@ AUTH_USER_MODEL = "users.ThingbookerUser"
 AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",  # default
     "guardian.backends.ObjectPermissionBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
 )
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -200,8 +199,8 @@ REST_FRAMEWORK = {
 ###################
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config("ACCESS_TOKEN_LIFETIME", cast=int)),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=config("REFRESH_TOKEN_LIFETIME", cast=int)),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer", "JWT"),
