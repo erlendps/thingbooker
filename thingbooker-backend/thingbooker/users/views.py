@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from thingbooker.users.serializers import ThingbookerSerializer
+from thingbooker.users.serializers import ThingbookerUserSerializer
 
 if TYPE_CHECKING:
     from django.db.models.query import QuerySet
@@ -20,7 +20,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     An authenticated can only list users inside their own group and themselves.
     """
 
-    serializer_class = ThingbookerSerializer
+    serializer_class = ThingbookerUserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self) -> QuerySet:

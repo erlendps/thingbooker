@@ -212,8 +212,8 @@ SIMPLE_JWT = {
 
 REST_AUTH = {
     # serializers
-    "USER_DETAILS_SERIALIZER": "dj_rest_auth.serializers.UserDetailsSerializer",
-    "REGISTER_SERIALIZER": "dj_rest_auth.registration.serializers.RegisterSerializer",
+    "USER_DETAILS_SERIALIZER": "thingbooker.users.serializers.ThingbookerUserSerializer",
+    "REGISTER_SERIALIZER": "thingbooker.users.serializers.ThingbookerRegisterSerializer",
     # auth
     "PASSWORD_RESET_USE_SITES_DOMAIN": False,
     "OLD_PASSWORD_FIELD_ENABLED": True,

@@ -32,7 +32,7 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
     def save(self, *args, **kwargs):
         """Set the email field the same as the username (email is username)."""
 
-        if self.email is None:
+        if not self.email:
             self.email = self.username
         return super().save(*args, **kwargs)
 
