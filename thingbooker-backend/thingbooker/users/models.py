@@ -7,7 +7,6 @@ from django.core.validators import validate_image_file_extension
 from django.db import models
 
 from thingbooker.base_models import ThingbookerModel
-from thingbooker.users.validators import validate_image_is_square
 
 
 def user_avatar_path(instance: ThingbookerUser, filename: str):
@@ -15,6 +14,13 @@ def user_avatar_path(instance: ThingbookerUser, filename: str):
 
     extension = filename.split(".")[-1]
     return f"users/avatars/{instance.id}.{extension}"
+
+
+def group_picture_path(instance: ThingbookerGroup, filename: str):
+    """Fetches the group picture upload path for a given group."""
+
+    extension = filename.split(".")[-1]
+    return f"groups/pictures/{instance.id}.{extension}"
 
 
 class ThingbookerUser(AbstractUser, ThingbookerModel):
@@ -26,7 +32,7 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
     avatar = models.ImageField(
         upload_to=user_avatar_path,
         null=True,
-        validators=[validate_image_file_extension, validate_image_is_square],
+        validators=[validate_image_file_extension],
     )
 
     def save(self, *args, **kwargs):
@@ -60,3 +66,4 @@ class ThingbookerGroup(models.Model):
     """
 
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="thingbooker_group")
+    group_picture = models.ImageField(upload_to=group_picture_path, null=True)
