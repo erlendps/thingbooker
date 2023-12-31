@@ -9,6 +9,7 @@ from django.contrib.auth.models import Group
 from django.core.files.images import get_image_dimensions
 from rest_framework import serializers
 
+from thingbooker.users.interface import ThingbookerGroupInterface
 from thingbooker.users.models import ThingbookerGroup
 
 if TYPE_CHECKING:
@@ -83,11 +84,9 @@ class GroupSerializer(serializers.ModelSerializer):
 class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer for thingbooker groups."""
 
-    group = GroupSerializer()
-
     class Meta:
         model = ThingbookerGroup
-        fields = ["url", "id", "group", "group_picture"]
+        fields = ["url", "id", "name", "group_picture", "owner"]
 
     def validate_group_picture(self, value):
         """Validates the size of the group picture."""
@@ -101,7 +100,7 @@ class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
 
         return value
 
-    def create(self, validated_data: dict[str, Any]) -> Any:
+    def create(self, validated_data: dict[str, Any]) -> ThingbookerGroup:
         """When creating a thingbooker group, also create the auth.Group instance and link it."""
 
-        return super().create(validated_data)
+        return ThingbookerGroupInterface.create_with_group(**validated_data)

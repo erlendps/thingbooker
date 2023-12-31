@@ -1,12 +1,18 @@
 """Contains models for the authentication app."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import validate_image_file_extension
 from django.db import models
 
 from thingbooker.base_models import ThingbookerModel
+
+if TYPE_CHECKING:
+    from django.db.models.manager import ManyToManyRelatedManager
 
 
 def user_avatar_path(instance: ThingbookerUser, filename: str):
@@ -65,5 +71,15 @@ class ThingbookerGroup(models.Model):
     this allows for easy extension of a group.
     """
 
+    # specify name since we can have multiple with the same name
+    name = models.CharField(max_length=150)
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="thingbooker_group")
     group_picture = models.ImageField(upload_to=group_picture_path, null=True)
+
+    owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+
+    @property
+    def members(self) -> ManyToManyRelatedManager[ThingbookerUser]:
+        """Shorthand for accessing the userset of auth.Group model."""
+
+        return self.group.user_set
