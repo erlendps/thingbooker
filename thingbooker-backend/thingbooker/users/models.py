@@ -37,6 +37,7 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
     )
     avatar = models.ImageField(
         upload_to=user_avatar_path,
+        blank=True,
         null=True,
         validators=[validate_image_file_extension],
     )
@@ -74,7 +75,7 @@ class ThingbookerGroup(models.Model):
     # specify name since we can have multiple with the same name
     name = models.CharField(max_length=150)
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="thingbooker_group")
-    group_picture = models.ImageField(upload_to=group_picture_path, null=True)
+    group_picture = models.ImageField(upload_to=group_picture_path, null=True, blank=True)
 
     owner = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
 
