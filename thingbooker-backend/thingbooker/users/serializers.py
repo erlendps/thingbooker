@@ -84,9 +84,13 @@ class GroupSerializer(serializers.ModelSerializer):
 class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer for thingbooker groups."""
 
+    members: serializers.HyperlinkedRelatedField = serializers.HyperlinkedRelatedField(
+        view_name="thingbookeruser-detail", many=True, read_only=True
+    )
+
     class Meta:
         model = ThingbookerGroup
-        fields = ["url", "id", "name", "group_picture", "owner"]
+        fields = ["url", "id", "name", "group_picture", "owner", "members"]
 
     def validate_group_picture(self, value):
         """Validates the size of the group picture."""
@@ -99,6 +103,12 @@ class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
             )
 
         return value
+
+    def get_members(self):
+        """Fetches all members of the group."""
+
+        tb_group: ThingbookerGroup = self.instance
+        return tb_group.members.all()
 
     def create(self, validated_data: dict[str, Any]) -> ThingbookerGroup:
         """When creating a thingbooker group, also create the auth.Group instance and link it."""
