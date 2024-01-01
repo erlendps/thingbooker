@@ -49,6 +49,12 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
         group_ids = self.groups.values_list("thingbooker_group", flat=True)
         return ThingbookerGroup.objects.filter(id__in=group_ids)
 
+    @property
+    def is_admin_user(self):
+        """Returns true if this user is an admin user"""
+
+        return self.is_staff or self.is_superuser
+
     def save(self, *args, **kwargs):
         """Set the email field the same as the username (email is username)."""
 
@@ -100,3 +106,8 @@ class ThingbookerGroup(ThingbookerModel):
         """Shorthand for accessing the userset of auth.Group model."""
 
         return self.group.user_set
+
+    def user_is_member(self, user: ThingbookerUser):
+        """Returns True if the user is a member of this group."""
+
+        return self.members.contains(user)
