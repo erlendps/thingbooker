@@ -42,6 +42,13 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
         validators=[validate_image_file_extension],
     )
 
+    @property
+    def thingbooker_groups(self):
+        """Returns a queryset of related ThingbookerGroup instances"""
+
+        group_ids = self.groups.values_list("thingbooker_group", flat=True)
+        return ThingbookerGroup.objects.filter(id__in=group_ids)
+
     def save(self, *args, **kwargs):
         """Set the email field the same as the username (email is username)."""
 
@@ -49,21 +56,30 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
             self.email = self.username
         return super().save(*args, **kwargs)
 
+    def get_all_known_user_ids(self):
+        """Fetches the id of the users that this user 'knows', i.e is in a group with."""
+
+        qs = get_user_model().objects.filter(id=self.id)
+        for group in self.groups.all():
+            qs = qs.union(group.user_set.all())
+
+        return qs.values_list("id", flat=True)
+
     def get_group_or_none(self, group_id: int) -> Group | None:
         """Fetches the group (only looks at this users group)."""
 
         try:
-            return self.groups.get(pk=group_id)
+            return self.groups.get(pk=group_id).thingbooker_group
         except ObjectDoesNotExist:
             return None
 
     def get_all_groups(self):
-        """Fetches all groups for this user."""
+        """Fetches all thingbooker groups for this user."""
 
         return self.groups.select_related("thingbooker_group").all()
 
 
-class ThingbookerGroup(models.Model):
+class ThingbookerGroup(ThingbookerModel):
     """
     A group is a collection of users.
 

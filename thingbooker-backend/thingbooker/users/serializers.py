@@ -52,9 +52,13 @@ class ThingbookerRegisterSerializer(RegisterSerializer, serializers.ModelSeriali
 class ThingbookerUserSerializer(UserDetailsSerializer, serializers.HyperlinkedModelSerializer):
     """Serializer for thingbooker user."""
 
+    thingbooker_groups: serializers.HyperlinkedRelatedField = serializers.HyperlinkedRelatedField(
+        "thingbookergroup-detail", many=True, read_only=True
+    )
+
     class Meta:
         model = get_user_model()
-        fields = ["url", "id", "username", "email", "avatar", "groups"]
+        fields = ["url", "id", "username", "email", "avatar", "thingbooker_groups"]
 
     def validate_avatar(self, value):
         """Validates image is squared and filesize is low enough."""
@@ -103,12 +107,6 @@ class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
             )
 
         return value
-
-    def get_members(self):
-        """Fetches all members of the group."""
-
-        tb_group: ThingbookerGroup = self.instance
-        return tb_group.members.all()
 
     def create(self, validated_data: dict[str, Any]) -> ThingbookerGroup:
         """When creating a thingbooker group, also create the auth.Group instance and link it."""
