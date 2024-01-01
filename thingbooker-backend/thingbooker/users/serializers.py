@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from thingbooker.users.models import ThingbookerUser
 
 
-MEGABYTE_LIMIT = 1
+MEGABYTE_LIMIT = 2
 
 
 class ThingbookerRegisterSerializer(RegisterSerializer, serializers.ModelSerializer):
