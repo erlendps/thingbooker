@@ -19,4 +19,7 @@ class ThingbookerGroupInterface:
         """Creates a thingbooker group with a auth group."""
 
         group = cls.create_auth_group()
-        return ThingbookerGroup.objects.create(group=group, **fields)
+        owner = fields.get("owner")
+        tb_group = ThingbookerGroup.objects.create(group=group, **fields)
+        tb_group.members.add(owner)
+        return tb_group
