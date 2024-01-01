@@ -2,11 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from django.contrib.auth import get_user_model
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from thingbooker.users.models import ThingbookerGroup
 from thingbooker.users.permissions import ThingbookerGroupPermission
 from thingbooker.users.serializers import ThingbookerGroupSerializer, ThingbookerUserSerializer
 
@@ -29,7 +27,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         """Fetches a queryset with all users this user is in a group with"""
 
         user: ThingbookerUser = self.request.user
-        return get_user_model().objects.filter(id__in=user.get_all_known_user_ids())
+        return user.get_all_known_users()
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -46,5 +44,4 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         user: ThingbookerUser = self.request.user
 
-        tb_group_ids = user.groups.all().values_list("thingbooker_group", flat=True)
-        return ThingbookerGroup.objects.filter(id__in=tb_group_ids)
+        return user.thingbooker_groups

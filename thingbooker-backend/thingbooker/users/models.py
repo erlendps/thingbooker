@@ -46,8 +46,7 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
     def thingbooker_groups(self):
         """Returns a queryset of related ThingbookerGroup instances"""
 
-        group_ids = self.groups.values_list("thingbooker_group", flat=True)
-        return ThingbookerGroup.objects.filter(id__in=group_ids)
+        return ThingbookerGroup.objects.filter(group__user=self)
 
     @property
     def is_admin_user(self):
@@ -62,14 +61,10 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
             self.email = self.username
         return super().save(*args, **kwargs)
 
-    def get_all_known_user_ids(self):
-        """Fetches the id of the users that this user 'knows', i.e is in a group with."""
+    def get_all_known_users(self):
+        """Fetches the users that this user 'knows', i.e is in a group with."""
 
-        qs = get_user_model().objects.filter(id=self.id)
-        for group in self.groups.all():
-            qs = qs.union(group.user_set.all())
-
-        return qs.values_list("id", flat=True)
+        return get_user_model().objects.filter(groups__in=self.groups.all())
 
     def get_group_or_none(self, group_id: int) -> Group | None:
         """Fetches the group (only looks at this users group)."""
