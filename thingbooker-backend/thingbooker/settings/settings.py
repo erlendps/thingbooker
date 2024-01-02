@@ -13,6 +13,7 @@ from decouple import config
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 # security
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
@@ -25,8 +26,6 @@ SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
 SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=True, cast=bool)
 
 CSRF_COOKIE_SECURE = config("CSRF_COOKIE_SECURE", default=True, cast=bool)
-
-CLIENT_URL = config("FRONTEND_URL")
 
 ROOT_URLCONF = "thingbooker.urls"
 
@@ -175,6 +174,18 @@ MEDIA_URL = "uploads/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "thingbooker", "uploads")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+##########################
+##########################
+## Thingbooker settings ##
+##########################
+##########################
+
+CLIENT_BASE_URL = config("FRONTEND_URL")
+
+# Tokens
+TOKEN_BYTE_LENGTH = config("TOKEN_BYTE_LENGTH", cast=int)
+TOKEN_EXPIRY = config("TOKEN_EXPIRY", cast=int)  # in days
 
 ###################################
 ###################################
