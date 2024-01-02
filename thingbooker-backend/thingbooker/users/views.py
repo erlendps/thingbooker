@@ -5,8 +5,14 @@ from typing import TYPE_CHECKING
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from thingbooker.base_permissions import IsAdminUser
+from thingbooker.users.models import AcceptInviteToken
 from thingbooker.users.permissions import ThingbookerGroupPermission
-from thingbooker.users.serializers import ThingbookerGroupSerializer, ThingbookerUserSerializer
+from thingbooker.users.serializers import (
+    InviteTokenSerializer,
+    ThingbookerGroupSerializer,
+    ThingbookerUserSerializer,
+)
 
 if TYPE_CHECKING:
     from django.db.models.query import QuerySet
@@ -45,3 +51,11 @@ class GroupViewSet(viewsets.ModelViewSet):
         user: ThingbookerUser = self.request.user
 
         return user.thingbooker_groups
+
+
+class InviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
+    """Provides list and retrieve actions for AcceptInviteToken model."""
+
+    serializer_class = InviteTokenSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    queryset = AcceptInviteToken.objects.all()

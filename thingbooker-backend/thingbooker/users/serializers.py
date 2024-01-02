@@ -10,7 +10,8 @@ from django.core.files.images import get_image_dimensions
 from rest_framework import serializers
 
 from thingbooker.users.interface import ThingbookerGroupInterface
-from thingbooker.users.models import ThingbookerGroup
+from thingbooker.users.models import AcceptInviteToken, ThingbookerGroup
+from thingbooker.utils import hash_token
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
@@ -112,3 +113,19 @@ class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
         """When creating a thingbooker group, also create the auth.Group instance and link it."""
 
         return ThingbookerGroupInterface.create_with_group(**validated_data)
+
+
+class InviteTokenSerializer(serializers.HyperlinkedModelSerializer):
+    """Serializer class for AcceptInviteToken model."""
+
+    hashed_token = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = AcceptInviteToken
+        fields = ["url", "group", "user", "hashed_token", "expires_at", "used_at", "created_at"]
+        read_only_fields = ["expires_at", "used_at", "created_at", "group"]
+
+    def get_hashed_token(self, obj: AcceptInviteToken):
+        """Returns a hashed version of the token"""
+
+        return hash_token(obj.token)
