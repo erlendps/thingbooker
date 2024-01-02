@@ -3,13 +3,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, Group
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import validate_image_file_extension
 from django.db import models
+from django.utils import timezone
 
 from thingbooker.base_models import ThingbookerModel
+from thingbooker.utils import create_token
 
 if TYPE_CHECKING:
     from django.db.models.manager import ManyToManyRelatedManager
@@ -106,3 +109,74 @@ class ThingbookerGroup(ThingbookerModel):
         """Returns True if the user is a member of this group."""
 
         return self.members.contains(user)
+
+
+class GenericToken(ThingbookerModel):
+    """Generic abstract token class."""
+
+    token = models.CharField(max_length=256, editable=False, db_index=True)
+
+    expires_at = models.DateTimeField(editable=False)
+
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def is_expired(self):
+        """Checks if the token has expired."""
+
+        return self.used_at or timezone.now() > self.expires_at
+
+    class Meta:
+        abstract = True
+        ordering = ["-created_at", "-expires_at"]
+
+    def __str__(self) -> str:
+        return f"Token: {self.token}, Created: {self.created_at}, Expires: {self.expires_at}"
+
+    def save(self, *args, **kwargs):
+        """Generate the token on save."""
+
+        if not self.created_at:
+            self.created_at = timezone.now()
+        if not self.expires_at:
+            self.expires_at = self.created_at + timezone.timedelta(days=settings.TOKEN_EXPIRY)
+        if not self.token:
+            self.token = create_token()
+        super().save(*args, **kwargs)
+
+    def get_clickable_url(self, token_type: str) -> str:
+        """Returns a 'clickable' url that is sent in the mail to the user being invited."""
+
+        return f"{settings.CLIENT_BASE_URL}{token_type}/?token={self.token}"
+
+
+class AcceptInviteToken(GenericToken):
+    """
+    Token for accepting an invite.
+
+    Has user, which is the invited user and
+    group, which is the group the email is invited to.
+    """
+
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="group_invites",
+    )
+
+    group = models.ForeignKey(
+        ThingbookerGroup,
+        on_delete=models.CASCADE,
+        related_name="invite_tokens",
+    )
+
+    class Meta:
+        unique_together = ("user", "token")
+
+    def get_clickable_url(self, token_type: str = "accept-invite") -> str:
+        """Returns a 'clickable' url that is sent in the mail to the user being invited."""
+
+        return super().get_clickable_url(token_type)
+
+    def __str__(self) -> str:
+        return "AcceptInvite" + super().__str__()
