@@ -2,11 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from rest_framework import viewsets
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from thingbooker.base_permissions import IsAdminUser
-from thingbooker.users.models import AcceptInviteToken
+from thingbooker.users.enums import GroupMemberStatusEnum
+from thingbooker.users.interface import ThingbookerGroupInterface
+from thingbooker.users.models import AcceptInviteToken, ThingbookerUser
 from thingbooker.users.permissions import ThingbookerGroupPermission
 from thingbooker.users.serializers import (
     InviteTokenSerializer,
@@ -15,9 +20,12 @@ from thingbooker.users.serializers import (
 )
 
 if TYPE_CHECKING:
+    from uuid import UUID
+
     from django.db.models.query import QuerySet
 
-    from thingbooker.users.models import ThingbookerUser
+    from thingbooker.base_types import ThingbookerRequest
+    from thingbooker.users.models import ThingbookerGroup
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -51,6 +59,45 @@ class GroupViewSet(viewsets.ModelViewSet):
         user: ThingbookerUser = self.request.user
 
         return user.thingbooker_groups
+
+    @action(detail=True, methods=["POST"])
+    def invite_member(self, request: ThingbookerRequest, pk: UUID | None = None, format=None):
+        """Invites one or more members to a group."""
+
+        user = request.user
+        group: ThingbookerGroup = self.get_object()
+        serializer = InviteTokenSerializer(data=request.data)
+        if serializer.is_valid():
+            email: str = serializer.validated_data.get("email")
+            if not email:
+                return Response(
+                    {"message": "No email supplied"}, status=status.HTTP_400_BAD_REQUEST
+                )
+            invite_successful_msg = {
+                "message": "The user has been invited if they are registered on thingbooker"
+            }
+            # check if user exist
+            try:
+                invited_user = ThingbookerUser.objects.get(username=email)
+            except ObjectDoesNotExist:
+                invited_user = None
+
+            if not invited_user:
+                # give a generic response so that a user cannot spam the endpoint to check
+                # which users exists
+                return Response(invite_successful_msg, status=status.HTTP_200_OK)
+
+            result = ThingbookerGroupInterface.invite_user_to_group(invited_user, group, user)
+            if result == GroupMemberStatusEnum.MEMBER:
+                msg = {"message": "User is already a member of the group"}
+            elif result == GroupMemberStatusEnum.ALREADY_INVITED:
+                msg = {"message": "User is already invited to the group"}
+            else:
+                msg = invite_successful_msg
+
+            return Response(msg, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class InviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
