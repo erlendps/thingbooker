@@ -11,7 +11,7 @@ from django.core.validators import validate_image_file_extension
 from django.db import models
 from django.utils import timezone
 
-from thingbooker.base_models import ThingbookerModel
+from thingbooker.base_models import ThingbookerManager, ThingbookerModel
 from thingbooker.utils import create_token
 
 if TYPE_CHECKING:
@@ -170,13 +170,15 @@ class AcceptInviteToken(GenericToken):
         related_name="invite_tokens",
     )
 
+    objects: ThingbookerManager = ThingbookerManager()
+
     class Meta:
         unique_together = ("user", "token")
 
-    def get_clickable_url(self, token_type: str = "accept-invite") -> str:
+    def get_clickable_url(self) -> str:
         """Returns a 'clickable' url that is sent in the mail to the user being invited."""
 
-        return super().get_clickable_url(token_type)
+        return super().get_clickable_url("accept-token")
 
     def __str__(self) -> str:
         return "AcceptInvite" + super().__str__()

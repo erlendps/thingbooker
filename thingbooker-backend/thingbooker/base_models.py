@@ -2,8 +2,21 @@
 
 from uuid import uuid4
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils import timezone
+
+
+class ThingbookerManager(models.Manager):
+    """Adds custom methods to the manager"""
+
+    def get_or_none(self, *args, **kwargs):
+        """Tries getting the object. Returns None if it does not exist"""
+
+        try:
+            return self.get(*args, **kwargs)
+        except ObjectDoesNotExist:
+            return None
 
 
 class UUIDBase(models.Model):
