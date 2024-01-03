@@ -32,6 +32,7 @@ ROOT_URLCONF = "thingbooker.urls"
 WSGI_APPLICATION = "thingbooker.wsgi.application"
 
 LOCAL_APPS = [
+    "thingbooker.mail",
     "thingbooker.users",
 ]
 
