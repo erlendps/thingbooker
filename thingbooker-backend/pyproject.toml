@@ -21,6 +21,7 @@ python-decouple = "^3.8"
 bpython = "^0.24"
 dj-rest-auth = { extras = ["with-social"], version = "^5.0.2" }
 djangorestframework-simplejwt = "^5.3.1"
+choicesenum = "^0.7.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -100,6 +101,7 @@ disable_error_code = [
   "assignment",
   "attr-defined",
   "override",
+  "misc",
 ]
 python_version = "3.11"
 show_column_numbers = true
