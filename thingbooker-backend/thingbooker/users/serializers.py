@@ -119,11 +119,21 @@ class InviteTokenSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer class for AcceptInviteToken model."""
 
     hashed_token = serializers.SerializerMethodField(read_only=True)
+    email = serializers.EmailField(write_only=True)
 
     class Meta:
         model = AcceptInviteToken
-        fields = ["url", "group", "user", "hashed_token", "expires_at", "used_at", "created_at"]
-        read_only_fields = ["expires_at", "used_at", "created_at", "group"]
+        fields = [
+            "url",
+            "group",
+            "user",
+            "hashed_token",
+            "expires_at",
+            "used_at",
+            "created_at",
+            "email",
+        ]
+        read_only_fields = ["expires_at", "used_at", "created_at", "group", "user"]
 
     def get_hashed_token(self, obj: AcceptInviteToken):
         """Returns a hashed version of the token"""
