@@ -1,0 +1,9 @@
+Hei, {{ user.first_name }}!
+
+{{ invited_by.first_name }} har invitert deg til gruppen sin, {{ group.name }}.
+For å godta invitasjonen kan du trykke på denne linken:
+
+{{ token.get_clickable_url }}
+
+
+Hilsen Thingbooker
