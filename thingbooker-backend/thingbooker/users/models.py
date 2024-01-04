@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.auth.models import AbstractUser, Group, UserManager
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import validate_image_file_extension
 from django.db import models
@@ -32,6 +32,18 @@ def group_picture_path(instance: ThingbookerGroup, filename: str):
     return f"groups/pictures/{instance.id}.{extension}"
 
 
+class ThingbookerUserManager(UserManager):
+    """Custom manager for thingbooker users."""
+
+    def get_or_none(self, *args, **kwargs):
+        """Tries fetching the user, if it does not exist, return None"""
+
+        try:
+            return self.get(*args, **kwargs)
+        except ObjectDoesNotExist:
+            return None
+
+
 class ThingbookerUser(AbstractUser, ThingbookerModel):
     """User of thingbooker."""
 
@@ -44,6 +56,8 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
         null=True,
         validators=[validate_image_file_extension],
     )
+
+    objects: ThingbookerUserManager = ThingbookerUserManager()
 
     @property
     def thingbooker_groups(self):

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -76,12 +75,8 @@ class GroupViewSet(viewsets.ModelViewSet):
             invite_successful_msg = {
                 "message": "The user has been invited if they are registered on thingbooker"
             }
-            # check if user exist
-            try:
-                invited_user = ThingbookerUser.objects.get(username=email)
-            except ObjectDoesNotExist:
-                invited_user = None
 
+            invited_user: ThingbookerUser = ThingbookerUser.objects.get_or_none(username=email)
             if not invited_user:
                 # give a generic response so that a user cannot spam the endpoint to check
                 # which users exists
