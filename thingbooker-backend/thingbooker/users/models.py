@@ -134,6 +134,8 @@ class GenericToken(ThingbookerModel):
 
     used_at = models.DateTimeField(null=True, blank=True)
 
+    objects: ThingbookerManager = ThingbookerManager()
+
     @property
     def is_expired(self):
         """Checks if the token has expired."""
@@ -158,10 +160,10 @@ class GenericToken(ThingbookerModel):
             self.token = create_token()
         super().save(*args, **kwargs)
 
-    def get_clickable_url(self, token_type: str) -> str:
+    def get_clickable_url(self, token_action: str) -> str:
         """Returns a 'clickable' url that is sent in the mail to the user being invited."""
 
-        return f"{settings.CLIENT_BASE_URL}{token_type}/?token={self.token}"
+        return f"{settings.CLIENT_BASE_URL}invite-tokens/{token_action}/{self.token}/"
 
 
 class AcceptInviteToken(GenericToken):
@@ -184,15 +186,13 @@ class AcceptInviteToken(GenericToken):
         related_name="invite_tokens",
     )
 
-    objects: ThingbookerManager = ThingbookerManager()
-
     class Meta:
         unique_together = ("user", "token")
 
     def get_clickable_url(self) -> str:
         """Returns a 'clickable' url that is sent in the mail to the user being invited."""
 
-        return super().get_clickable_url("accept-token")
+        return super().get_clickable_url("accept-invite")
 
     def __str__(self) -> str:
         return "AcceptInvite" + super().__str__()
