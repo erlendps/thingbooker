@@ -101,3 +101,24 @@ class InviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = InviteTokenSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = AcceptInviteToken.objects.all()
+
+    @action(
+        methods=["GET", "POST"],
+        detail=False,
+        url_path="accept-invite/<str:token>/",
+        permission_classes=[IsAuthenticated],
+    )
+    def accept_invite(self, request: ThingbookerRequest, token: str):
+        """Accepts a invite to a group"""
+
+        user = request.user
+        invite_token: AcceptInviteToken = AcceptInviteToken.objects.get_or_none(
+            user=user, token=token
+        )
+
+        if not invite_token:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        result = ThingbookerGroupInterface.accept_group_invite(user, invite_token)
+
+        return Response(data={"message": result.value}, status=status.HTTP_200_OK)

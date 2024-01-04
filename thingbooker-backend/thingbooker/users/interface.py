@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 
 from thingbooker.mail.interface import EmailInterface
-from thingbooker.users.enums import GroupMemberStatusEnum
+from thingbooker.users.enums import GroupMemberStatusEnum, InviteStatusEnum
 from thingbooker.users.models import AcceptInviteToken, ThingbookerGroup
 
 if TYPE_CHECKING:
@@ -58,3 +58,25 @@ class ThingbookerGroupInterface:
             subject=cls.DEFAULT_INVITE_SUBJECT,
         )
         return GroupMemberStatusEnum.SENT_INVITE
+
+    @classmethod
+    def accept_group_invite(
+        cls, user: ThingbookerUser, token: AcceptInviteToken
+    ) -> InviteStatusEnum:
+        """Method for accepting a group invite. Will add the user to the group."""
+
+        if token.is_expired:
+            return InviteStatusEnum.TOKEN_EXPIRED
+        elif token.is_used:
+            return InviteStatusEnum.TOKEN_USED
+
+        # add user to group
+        group = token.group
+        group.members.add(user)
+        group.save()
+
+        # set token as used
+        token.used_at = timezone.now()
+        token.save()
+
+        return InviteStatusEnum.TOKEN_CONSUMED

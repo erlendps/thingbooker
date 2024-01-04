@@ -140,7 +140,13 @@ class GenericToken(ThingbookerModel):
     def is_expired(self):
         """Checks if the token has expired."""
 
-        return self.used_at or timezone.now() > self.expires_at
+        return timezone.now() > self.expires_at
+
+    @property
+    def is_used(self):
+        """Checks if the token has been used."""
+
+        return bool(self.used_at)
 
     class Meta:
         abstract = True
@@ -164,6 +170,11 @@ class GenericToken(ThingbookerModel):
         """Returns a 'clickable' url that is sent in the mail to the user being invited."""
 
         return f"{settings.CLIENT_BASE_URL}invite-tokens/{token_action}/{self.token}/"
+
+    def is_invalid(self):
+        """Checks if the token is valid"""
+
+        return self.is_used or self.is_expired
 
 
 class AcceptInviteToken(GenericToken):
