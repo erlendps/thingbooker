@@ -63,7 +63,7 @@ class EmailInterface:
         messages = cls._render_templates(templates, context)
 
         msg = EmailMultiAlternatives(
-            subject=subject, body=messages["txt"], from_email=from_address, to=to_address
+            subject=subject, body=messages["txt"], from_email=from_address, to=[to_address]
         )
         if "html" in messages:
             msg.attach_alternative(messages["html"], "text/html")
