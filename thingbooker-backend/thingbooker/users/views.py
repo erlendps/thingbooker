@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -40,6 +41,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         """Fetches a queryset with all users this user is in a group with"""
 
         user: ThingbookerUser = self.request.user
+
+        # check if user is admin
+        if user.is_admin_user:
+            return get_user_model().objects.all()
         return user.get_all_known_users()
 
 
@@ -105,7 +110,7 @@ class InviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         methods=["GET", "POST"],
         detail=False,
-        url_path="accept-invite/<str:token>/",
+        url_path="accept-invite/(?P<token>.+)",
         permission_classes=[IsAuthenticated],
     )
     def accept_invite(self, request: ThingbookerRequest, token: str):
