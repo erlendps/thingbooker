@@ -59,7 +59,16 @@ class ThingbookerUserSerializer(UserDetailsSerializer, serializers.HyperlinkedMo
 
     class Meta:
         model = get_user_model()
-        fields = ["url", "id", "username", "email", "avatar", "thingbooker_groups"]
+        fields = [
+            "url",
+            "id",
+            "username",
+            "email",
+            "avatar",
+            "thingbooker_groups",
+            "first_name",
+            "last_name",
+        ]
 
     def validate_avatar(self, value):
         """Validates image is squared and filesize is low enough."""
