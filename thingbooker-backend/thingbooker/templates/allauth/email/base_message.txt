@@ -1,0 +1,7 @@
+{% load i18n %}
+
+{% block content %}{% endblock content %}
+
+
+{% blocktrans %}Hilsen Thingbooker{% endblocktrans %}
+{% endautoescape %}

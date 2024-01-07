@@ -1,0 +1,15 @@
+{% extends "account/email/base_message.txt" %}
+{% load i18n %}
+
+{% block content %}{% autoescape off %}{% blocktrans %}
+Hei!
+
+Du får denne eposten fordu du eller noen andre has forespurt gjenopprettelse
+av passordet ditt hos Thingbooker. Vi finner ingen bruker tilknyttet denne
+epostaddressen, og meldingen kan trygt bli ignorert om det ikke var deg som
+forespurte gjenopprettelsen.
+
+Om det var deg, kan du registrere en bruker hos Thingbooker ved å trykke på
+linken under.{% endblocktrans %}
+
+{{ signup_url }}{% endautoescape %}{% endblock content %}

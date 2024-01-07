@@ -1,0 +1,14 @@
+{% extends "account/email/base_message.txt" %}
+{% load i18n %}
+
+{% block content %}
+{% trans "Hei" %} {{ user.first_name }}!
+
+{% blocktrans with mail_to="tb@thingbooker.no" %}
+Du har registert deg som bruker hos Thingbooker!
+For å bekrefte brukeren din, kan du klikke på linken under:
+{{ activate_url }}
+
+Om dette ikke er deg, vennligst ta kontakt med oss her: {{ mail_to }}
+{% endblocktrans %}
+{% endblock content %}
