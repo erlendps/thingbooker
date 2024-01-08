@@ -34,6 +34,7 @@ djangorestframework-stubs = { extras = [
   "compatible-mypy",
 ], version = "^3.14.5" }
 django-stubs = { extras = ["compatible-mypy"], version = "^4.2.7" }
+djlint = "^1.34.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -127,3 +128,6 @@ ignore_errors = true
 
 [tool.django-stubs]
 django_settings_module = "thingbooker.settings"
+
+[tool.djlint]
+profile = "django"

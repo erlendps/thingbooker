@@ -9,5 +9,20 @@
   },
   "ruff.path": ["./thingbooker-backend/.venv/bin/ruff"],
   "cSpell.words": ["thingbooker"],
-  "mypy-type-checker.args": ["--config-file=thingbooker-backend/pyproject.toml"]
+  "mypy-type-checker.args": [
+    "--config-file=thingbooker-backend/pyproject.toml"
+  ],
+  "djlint.configuration": "thingbooker-backend/pyproject.toml",
+  "djlint.formatLanguages": [
+    "django-html",
+    "jinja",
+    "jinja-html",
+    "nj",
+    "njk",
+    "nunjucks",
+    "twig",
+    "handlebars",
+    "hbs",
+    "mustache"
+  ]
 }
