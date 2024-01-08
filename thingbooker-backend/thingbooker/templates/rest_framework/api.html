@@ -1,0 +1,22 @@
+{% extends "rest_framework/base.html" %}
+{% load static %}
+{% block head %}
+  {{ block.super }}
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static "thingbooker/favicon/apple-touch-icon.png" %}">
+  <link rel="shortcut icon" type="image/png" sizes="32x32" href="{% static "thingbooker/favicon/favicon-32x32.png" %}">
+  <link rel="shortcut icon" type="image/png" sizes="16x16" href="{% static "thingbooker/favicon/favicon-16x16.png" %}">
+  <link rel="manifest" href="{% static "thingbooker/manifest/thingbooker.webmanifest" %}">
+{% endblock head %}
+{% block bootstrap_theme %}
+  <link rel="stylesheet" href="{% static "vendor/flatly/bootstrap.min.css" %}" type="text/css">
+{% endblock bootstrap_theme %}
+{% block title %}
+  {% if name %}{{ name }} -{% endif %}
+  Thingbooker API
+{% endblock title %}
+{% block branding %}
+  <a class="navbar-brand"
+     href="https://github.com/erlendps/thingbooker"
+     target="_blank"
+     rel="nofollow">Thingbooker REST API</a>
+{% endblock branding %}
