@@ -12,6 +12,7 @@ from decouple import config
 #####################
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+CODE_DIR = os.path.join(BASE_DIR, "thingbooker")
 
 
 # security
@@ -79,8 +80,8 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            os.path.join(BASE_DIR, "templates"),
-            os.path.join(BASE_DIR, "templates", "allauth"),
+            os.path.join(CODE_DIR, "templates"),
+            os.path.join(CODE_DIR, "templates", "allauth"),
         ],
         "APP_DIRS": True,
         "OPTIONS": {
