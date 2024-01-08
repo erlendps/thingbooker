@@ -1,0 +1,21 @@
+{% extends "account/email/base_message.html" %}
+{% load i18n %}
+{% block content %}
+  {% autoescape off %}
+    <p>
+      {% blocktrans %}
+      Hei!
+      <br><br>
+      Du får denne eposten fordi du eller noen andre har prøvd å registrere seg
+      hos thingbooker med denne epostaddressen:
+      <br><br>
+      {{ email }}
+      <br><br>
+      En bruker med denne epostaddressen finnes allerede. Om du har glemt passordet
+      ditt, kan du gjenopprette det ved å klikke på linken under:
+      <br><br>
+      {{ password_reset_url }}
+      {% endblocktrans %}
+    </p>
+  {% endautoescape %}
+{% endblock content %}
