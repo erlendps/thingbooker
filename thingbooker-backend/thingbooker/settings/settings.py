@@ -34,6 +34,7 @@ WSGI_APPLICATION = "thingbooker.wsgi.application"
 
 LOCAL_APPS = [
     "thingbooker.mail",
+    "thingbooker.things",
     "thingbooker.users",
 ]
 
