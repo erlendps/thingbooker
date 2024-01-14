@@ -15,7 +15,9 @@ from thingbooker.base_models import ThingbookerManager, ThingbookerModel
 from thingbooker.utils import create_token
 
 if TYPE_CHECKING:
-    from django.db.models.manager import ManyToManyRelatedManager
+    from django.db.models.manager import ManyToManyRelatedManager, RelatedManager
+
+    from thingbooker.things.models import Booking, Thing
 
 
 def user_avatar_path(instance: ThingbookerUser, filename: str):
@@ -46,6 +48,11 @@ class ThingbookerUserManager(UserManager):
 
 class ThingbookerUser(AbstractUser, ThingbookerModel):
     """User of thingbooker."""
+
+    if TYPE_CHECKING:
+        bookings: RelatedManager[Booking]
+        owned_things: RelatedManager[Thing]
+        things: RelatedManager[Thing]
 
     username = models.EmailField(
         blank=False, verbose_name="email address", unique=True, db_index=True
