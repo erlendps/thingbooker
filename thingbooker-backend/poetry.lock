@@ -270,20 +270,6 @@ files = [
 ]
 
 [[package]]
-name = "choicesenum"
-version = "0.7.0"
-description = "Python's Enum with extra powers to play nice with labels and choices fields"
-optional = false
-python-versions = "*"
-files = [
-    {file = "choicesenum-0.7.0-py2.py3-none-any.whl", hash = "sha256:8b8c1f8a374f537441303992009907234c36a587d3a93d248c878c2f104a2b7d"},
-    {file = "choicesenum-0.7.0.tar.gz", hash = "sha256:37d53174a66405ff178ac44396be9f3a71fe8f5b43d3a5a6ebfaa9593543d36a"},
-]
-
-[package.dependencies]
-six = "*"
-
-[[package]]
 name = "click"
 version = "8.1.7"
 description = "Composable command line interface toolkit"
@@ -1823,4 +1809,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "4894da4320282ab2e16f4e7388b47713fdba816df1b3803b1b6b830ab165efb8"
+content-hash = "72db581082108d892a4eecd7da70b40cd3e4910e62bbc3e6d334b1b21c11c3c5"
