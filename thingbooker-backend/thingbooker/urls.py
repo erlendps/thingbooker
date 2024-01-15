@@ -1,8 +1,13 @@
 from dj_rest_auth.registration.views import VerifyEmailView
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-from thingbooker.router import router
+from thingbooker.users.urls import router as users_router
+
+# extend top-router with app specific routers
+router = DefaultRouter()
+router.registry.extend(users_router.registry)
 
 urlpatterns = [
     path("", include(router.urls)),
@@ -13,5 +18,5 @@ urlpatterns = [
         VerifyEmailView.as_view(),
         name="account_email_verification_sent",
     ),
-    path("admin/", admin.site.urls),
+    path("django-admin/", admin.site.urls),
 ]
