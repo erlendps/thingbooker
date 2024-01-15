@@ -3,11 +3,13 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from thingbooker.things.urls import router as things_router
 from thingbooker.users.urls import router as users_router
 
 # extend top-router with app specific routers
 router = DefaultRouter()
 router.registry.extend(users_router.registry)
+router.registry.extend(things_router.registry)
 
 urlpatterns = [
     path("", include(router.urls)),
