@@ -189,6 +189,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CLIENT_BASE_URL = config("FRONTEND_URL")
 
+MEGABYTE_LIMIT = 2
+
 # Tokens
 TOKEN_BYTE_LENGTH = config("TOKEN_BYTE_LENGTH", cast=int)
 TOKEN_EXPIRY = config("TOKEN_EXPIRY", cast=int)  # in days
