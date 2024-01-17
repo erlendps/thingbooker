@@ -21,6 +21,14 @@ class RuleSerializer(serializers.HyperlinkedModelSerializer):
         fields = ["id", "url", "short", "description", "thing"]
 
 
+class CreateRuleSerializer(serializers.ModelSerializer):
+    """Serializer when creating a new rule."""
+
+    class Meta:
+        model = Rule
+        fields = ["short", "description", "thing"]
+
+
 class ThingSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer for Thing model"""
 

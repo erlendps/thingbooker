@@ -70,7 +70,7 @@ class ThingPermission(BasePermission):
         if user.is_admin_user:
             return True
 
-        if view.action in ["update", "partial_update", "destroy"]:
+        if view.action in ["update", "partial_update", "destroy", "add_rule"]:
             return obj.owner == user
 
         return True
