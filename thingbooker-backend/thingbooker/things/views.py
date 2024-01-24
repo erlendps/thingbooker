@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from thingbooker.things.interface import ThingInterface
 from thingbooker.things.models import Booking, Rule, Thing
 from thingbooker.things.permissions import (
     BookingPermission,
@@ -17,6 +18,7 @@ from thingbooker.things.permissions import (
 )
 from thingbooker.things.serializers import (
     BookingSerializer,
+    CreateBookingSerializer,
     CreateRuleSerializer,
     RuleSerializer,
     ThingSerializer,
@@ -104,4 +106,24 @@ class ThingViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             rule: Rule = serializer.save(thing=thing)
             return Response(data=RuleSerializer(rule).data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["POST"])
+    def add_booking(self, request: ThingbookerRequest, *args, **kwargs):
+        """Action for adding a new booking to the thing."""
+
+        thing: Thing = self.get_object()
+
+        serializer = CreateBookingSerializer(request.data)
+
+        if serializer.is_valid():
+            response = ThingInterface.add_new_booking(
+                thing=thing, user=request.user, serializer=serializer
+            )
+
+            if 200 <= response.code < 300:
+                return Response(
+                    data=BookingSerializer(response.payload).data, status=status.HTTP_201_CREATED
+                )
+            serializer.errors.update(response.payload)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
