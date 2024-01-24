@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
-from django.core.validators import validate_image_file_extension
+from django.core.validators import MinValueValidator, validate_image_file_extension
 from django.db import models
+from django.utils import timezone
 
 from thingbooker.base_models import ThingbookerManager, ThingbookerModel
 from thingbooker.things.enums import BookingStatusEnum
@@ -72,13 +73,18 @@ class Booking(ThingbookerModel):
     )
 
     num_people = models.PositiveIntegerField(
-        verbose_name="Number of guests using the thing", default=1
+        verbose_name="Number of guests using the thing",
+        default=1,
+        validators=[MinValueValidator(1, "Can't make a booking with 0 or less persons")],
     )
     status = models.TextField(
-        max_length=10, choices=BookingStatusEnum.choices, default=BookingStatusEnum.WAITING
+        max_length=10,
+        choices=BookingStatusEnum.choices,
+        default=BookingStatusEnum.WAITING,
+        blank=True,
     )
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateTimeField(validators=[MinValueValidator(timezone.now)])
+    end_date = models.DateTimeField(validators=[MinValueValidator(timezone.now)])
 
     class Meta:
         ordering = ["thing", "start_date"]
