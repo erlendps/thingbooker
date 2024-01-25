@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from thingbooker.things.models import Thing
-    from thingbooker.things.serializers import CreateBookingSerializer
+    from thingbooker.things.serializers import BookingSerializer
     from thingbooker.users.models import ThingbookerUser
 
 
@@ -20,7 +20,7 @@ class ThingInterface:
     """Helper methods relating to things."""
 
     @staticmethod
-    def add_new_booking(thing: Thing, user: ThingbookerUser, serializer: CreateBookingSerializer):
+    def add_new_booking(thing: Thing, user: ThingbookerUser, serializer: BookingSerializer):
         """Tries creating a new booking on the given dates, returns either an error dictionary, or
         the created booking.
 
@@ -33,12 +33,12 @@ class ThingInterface:
             Q(start_date__gte=timezone.now()) & ~Q(status=BookingStatusEnum.ACCEPTED.value)
         )
 
-        if (bookings := bookings.filter(start_date__lte=start, end_date__gte=end)).exists():
+        if (bookings := bookings.filter(start_date__lte=end, end_date__gte=start)).exists():
             overlapping_booking = bookings.first()
             payload = {}
-            if overlapping_booking.start_date <= end:
+            if overlapping_booking.start_date <= end and overlapping_booking.end_date >= end:
                 payload.update({"end_date": "Cannot end booking after another starts."})
-            if overlapping_booking.end_date >= start:
+            if overlapping_booking.end_date >= start and overlapping_booking.start_date <= start:
                 payload.update({"start_date": "Cannot start booking before another ends."})
 
             return ThingbookerResponse(code=400, payload=payload)
