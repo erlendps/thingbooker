@@ -23,6 +23,9 @@ class IsMemberOfThing(BasePermission):
 
         user = request.user
 
+        if user.is_admin_user:
+            return True
+
         if hasattr(obj, "thing"):
             thing: Thing = obj.thing
             return thing.members.contains(user)
@@ -60,7 +63,7 @@ class RulePermission(BasePermission):
 
 
 class ThingPermission(BasePermission):
-    """Contains specific permissions for Thing viewset"""
+    """Contains specific permissions for Thing viewset. Assumes user is member of thing."""
 
     def has_object_permission(self, request: ThingbookerRequest, view: ViewSet, obj: Thing) -> bool:
         """Only owner can do unsafe actions"""
