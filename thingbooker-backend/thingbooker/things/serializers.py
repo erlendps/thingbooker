@@ -17,15 +17,7 @@ class BookingSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Booking
         fields = ["id", "url", "thing", "booker", "num_people", "status", "start_date", "end_date"]
-        read_only_fields = ["status"]
-
-
-class CreateBookingSerializer(serializers.ModelSerializer):
-    """Serializer when creating a new booking"""
-
-    class Meta:
-        model = Booking
-        fields = ["num_people", "start_date", "end_date"]
+        read_only_fields = ["id", "url", "thing", "booker", "status"]
 
     def validate(self, data: dict[str, Any]) -> Any:
         """Validates start_date is before end_date"""
@@ -41,14 +33,7 @@ class RuleSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Rule
         fields = ["id", "url", "short", "description", "thing"]
-
-
-class CreateRuleSerializer(serializers.ModelSerializer):
-    """Serializer when creating a new rule."""
-
-    class Meta:
-        model = Rule
-        fields = ["short", "description"]
+        read_only_fields = ["id", "url", "thing"]
 
 
 class ThingSerializer(serializers.HyperlinkedModelSerializer):
@@ -68,9 +53,21 @@ class ThingSerializer(serializers.HyperlinkedModelSerializer):
             "rules",
         ]
 
+
+class CreateThingSerializer(serializers.ModelSerializer):
+    """Serializer for creating a thing, has a nested serializer for rules"""
+
+    rules = RuleSerializer(many=True, required=False)
+
+    class Meta:
+        model = Thing
+        fields = ["name", "description", "picture", "members", "rules"]
+
     def validate_picture(self, value):
         """Validates image is filesize is low enough."""
 
+        if not value:
+            return value
         filesize = value.size
 
         if filesize > settings.MEGABYTE_LIMIT * 1024 * 1024:
@@ -79,3 +76,24 @@ class ThingSerializer(serializers.HyperlinkedModelSerializer):
             )
 
         return value
+
+    def create(self, validated_data: Any) -> Thing:
+        """Creates the thing along with related rules"""
+
+        rules_data = validated_data.pop("rules", None)
+
+        members = validated_data.pop("members", None)
+        owner = validated_data.get("owner", None)
+
+        thing: Thing = Thing.objects.create(**validated_data)
+
+        if members:
+            if owner:
+                members.append(owner)
+            thing.members.add(*members)
+
+        if rules_data:
+            for rule_data in rules_data:
+                Rule.objects.create(thing=thing, **rule_data)
+
+        return thing
