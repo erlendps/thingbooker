@@ -18,8 +18,7 @@ from thingbooker.things.permissions import (
 )
 from thingbooker.things.serializers import (
     BookingSerializer,
-    CreateBookingSerializer,
-    CreateRuleSerializer,
+    CreateThingSerializer,
     RuleSerializer,
     ThingSerializer,
 )
@@ -83,7 +82,6 @@ class ThingViewSet(viewsets.ModelViewSet):
     It also adds some actions, like creating new rules and bookings.
     """
 
-    serializer_class = ThingSerializer
     permission_classes = [IsAuthenticated, IsMemberOfThing, ThingPermission]
 
     def get_queryset(self) -> QuerySet:
@@ -95,17 +93,34 @@ class ThingViewSet(viewsets.ModelViewSet):
             return Thing.objects.all()
         return Thing.objects.filter(Q(members=user) | Q(owner=user))
 
+    def get_serializer_class(self):
+        """Returns specific serializer for create action"""
+
+        if self.action == "create":
+            return CreateThingSerializer
+        elif self.action == "add_rule":
+            return RuleSerializer
+        elif self.action == "add_booking":
+            return BookingSerializer
+        return ThingSerializer
+
+    def perform_create(self, serializer: CreateThingSerializer) -> None:
+        """Creates the thing along with related rules"""
+
+        user = self.request.user
+        serializer.save(owner=user)
+
     @action(detail=True, methods=["POST"])
     def add_rule(self, request: ThingbookerRequest, *args, **kwargs):
         """Action for adding a rule to the thing"""
 
         thing: Thing = self.get_object()
 
-        serializer = CreateRuleSerializer(request.data)
+        serializer: RuleSerializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
             rule: Rule = serializer.save(thing=thing)
-            return Response(data=RuleSerializer(rule).data, status=status.HTTP_201_CREATED)
+            return Response(data=self.get_serializer(rule).data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["POST"])
@@ -114,7 +129,7 @@ class ThingViewSet(viewsets.ModelViewSet):
 
         thing: Thing = self.get_object()
 
-        serializer = CreateBookingSerializer(request.data)
+        serializer: BookingSerializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
             response = ThingInterface.add_new_booking(
@@ -123,7 +138,7 @@ class ThingViewSet(viewsets.ModelViewSet):
 
             if 200 <= response.code < 300:
                 return Response(
-                    data=BookingSerializer(response.payload).data, status=status.HTTP_201_CREATED
+                    data=self.get_serializer(response.payload).data, status=status.HTTP_201_CREATED
                 )
-            serializer.errors.update(response.payload)
+            return Response(data=response.payload, status=status.HTTP_400_BAD_REQUEST)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
