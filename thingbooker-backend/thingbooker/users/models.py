@@ -103,6 +103,9 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
 
         return self.groups.select_related("thingbooker_group").all()
 
+    def __str__(self) -> str:
+        return str(self.username)
+
 
 class ThingbookerGroup(ThingbookerModel):
     """
@@ -130,6 +133,9 @@ class ThingbookerGroup(ThingbookerModel):
         """Returns True if the user is a member of this group."""
 
         return self.members.contains(user)
+
+    def __str__(self) -> str:
+        return f"{self.name} with owner {str(self.owner)}"
 
 
 class GenericToken(ThingbookerModel):
@@ -211,6 +217,3 @@ class AcceptInviteToken(GenericToken):
         """Returns a 'clickable' url that is sent in the mail to the user being invited."""
 
         return super().get_clickable_url("accept-invite")
-
-    def __str__(self) -> str:
-        return "AcceptInvite" + super().__str__()

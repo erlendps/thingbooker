@@ -57,6 +57,9 @@ class Thing(ThingbookerModel):
     class Meta:
         permissions = [("can_manage_booking", "User can manage (accept/decline) booking")]
 
+    def __str__(self) -> str:
+        return f"{self.name} with owner {self.owner}"
+
 
 class Booking(ThingbookerModel):
     """
@@ -94,6 +97,9 @@ class Booking(ThingbookerModel):
             )
         ]
 
+    def __str__(self) -> str:
+        return f"From {self.start_date} to {self.end_date} for {str(self.thing)}"
+
 
 class Rule(ThingbookerModel):
     """
@@ -110,3 +116,6 @@ class Rule(ThingbookerModel):
 
     class Meta:
         order_with_respect_to = "thing"
+
+    def __str__(self) -> str:
+        return f"Rule {self.short} for {self.thing}"

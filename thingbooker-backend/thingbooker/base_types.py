@@ -22,3 +22,6 @@ class ThingbookerResponse:
     def __init__(self, code: int, payload: Any) -> None:
         self.code = code
         self.payload = payload
+
+    def __str__(self) -> str:
+        return f"{self.code}: {self.payload}"
