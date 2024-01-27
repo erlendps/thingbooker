@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from rest_framework import serializers
 
+from thingbooker.things.enums import BookingStatusEnum
 from thingbooker.things.models import Booking, Rule, Thing
 
 if TYPE_CHECKING:
@@ -25,6 +26,17 @@ class BookingSerializer(serializers.HyperlinkedModelSerializer):
         if data["start_date"] >= data["end_date"]:
             raise serializers.ValidationError("End date must be after start date")
         return super().validate(data)
+
+
+class EditBookingStatusSerializer(serializers.Serializer):
+    """Serializer for editing status"""
+
+    new_status = serializers.ChoiceField(choices=BookingStatusEnum.update_choices())
+
+    def create(self, validated_data: Any) -> Any:
+        """Returns an enum instance"""
+
+        return BookingStatusEnum[validated_data["new_status"]]
 
 
 class RuleSerializer(serializers.HyperlinkedModelSerializer):

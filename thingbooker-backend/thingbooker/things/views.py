@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from typing import TYPE_CHECKING
 
 from django.db.models import Q
@@ -8,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from thingbooker.things.enums import BookingStatusEnum
 from thingbooker.things.interface import ThingInterface
 from thingbooker.things.models import Booking, Rule, Thing
 from thingbooker.things.permissions import (
@@ -19,6 +21,7 @@ from thingbooker.things.permissions import (
 from thingbooker.things.serializers import (
     BookingSerializer,
     CreateThingSerializer,
+    EditBookingStatusSerializer,
     RuleSerializer,
     ThingSerializer,
 )
@@ -142,3 +145,29 @@ class ThingViewSet(viewsets.ModelViewSet):
                 )
             return Response(data=response.payload, status=status.HTTP_400_BAD_REQUEST)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["POST"], url_path="update-booking-status/(?P<booking_id>.+)")
+    def update_booking_status(self, request: ThingbookerRequest, booking_id: str):
+        """Action for updating the booking status."""
+
+        thing: Thing = self.get_object()
+        try:
+            booking = thing.bookings.get(pk=uuid.UUID(booking_id))
+        except Exception:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = EditBookingStatusSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        action = serializer.save()
+
+        if action == BookingStatusEnum.ACCEPTED:
+            decline_overlapping: bool = request.query_params.get("decline_overlapping", True)
+            response = ThingInterface.accept_booking(thing, booking, decline_overlapping)
+            return Response(data=response.payload, status=response.code)
+
+        booking.status = BookingStatusEnum.DECLINED
+        booking.save()
+        return Response(data={"declined": "Booking was declined"}, status=status.HTTP_200_OK)
