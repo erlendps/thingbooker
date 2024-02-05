@@ -171,3 +171,24 @@ class ThingViewSet(viewsets.ModelViewSet):
         booking.status = BookingStatusEnum.DECLINED
         booking.save()
         return Response(data={"declined": "Booking was declined"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["GET"])
+    def all_rules(self):
+        """Fetches all rules for the thing"""
+
+        thing: Thing = self.get_object()
+
+        serializer = RuleSerializer(instance=thing.rules.all(), many=True)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["GET"])
+    def all_bookings(self):
+        """Fetches all bookings (waiting or accepted) for the thing"""
+
+        thing: Thing = self.get_object()
+        bookings = thing.bookings.exclude(status=BookingStatusEnum.DECLINED.value)
+
+        serializer = BookingSerializer(instance=bookings, many=True)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
