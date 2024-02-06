@@ -11,6 +11,8 @@ from thingbooker.things.models import Booking, Rule, Thing
 if TYPE_CHECKING:
     from typing import Any
 
+    from thingbooker.users.models import ThingbookerUser
+
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer for booking model"""
@@ -89,20 +91,26 @@ class CreateThingSerializer(serializers.ModelSerializer):
 
         return value
 
+    def validate_name(self, value):
+        """Validates that the user is not part of a thing with the same name"""
+
+        owner: ThingbookerUser = self.context.get("request", {"user": None}).user
+        if owner and owner.things.filter(name=value).exists():
+            raise serializers.ValidationError(f"Already part of a group with name: {value}.")
+
     def create(self, validated_data: Any) -> Thing:
         """Creates the thing along with related rules"""
 
         rules_data = validated_data.pop("rules", None)
 
-        members = validated_data.pop("members", None)
-        owner = validated_data.get("owner", None)
+        members = validated_data.pop("members", [])
+        owner: ThingbookerUser = validated_data.get("owner", None)
 
         thing: Thing = Thing.objects.create(**validated_data)
 
-        if members:
-            if owner:
-                members.append(owner)
-            thing.members.add(*members)
+        if owner:
+            members.append(owner)
+        thing.members.add(*members)
 
         if rules_data:
             for rule_data in rules_data:
