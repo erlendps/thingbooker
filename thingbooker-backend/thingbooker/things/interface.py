@@ -71,7 +71,7 @@ class ThingInterface:
         url = f"{settings.CLIENT_BASE_URL}things/{thing.name}/"
         context = {"booking": booking, "thing": thing, "update_status_url": url}
         EmailInterface.send_mail(
-            template_name="notify_owner_of_new_booking",
+            template_name="things/notify_owner_of_new_booking",
             context=context,
             to_address=thing.owner.username,
             subject="[Thingbooker] Ny booking",
@@ -83,7 +83,9 @@ class ThingInterface:
     def accept_booking(cls, thing: Thing, booking: Booking, decline_overlapping: bool = True):
         """Accepts a booking, and declines all other bookings that overlap."""
 
-        bookings = cls.get_overlapping_bookings(thing, booking=booking)
+        bookings = cls.get_overlapping_bookings(thing, booking=booking).select_related(
+            "thing", "booker"
+        )
         if bookings.filter(status=BookingStatusEnum.ACCEPTED.value).exists():
             return ThingbookerResponse(
                 code=409,
@@ -96,5 +98,25 @@ class ThingInterface:
         if decline_overlapping:
             declined = bookings.update(status=BookingStatusEnum.DECLINED)
             payload.update({"num_declined": declined})
+
+            for b in bookings:
+                if b.booker == thing.owner:
+                    continue
+                context = {"declined": True, "booking": b}
+                EmailInterface.send_mail(
+                    template_name="things/notify_booking_status_changed",
+                    context=context,
+                    to_address=b.booker.username,
+                    subject="[Thingbooker] Bookingen din er avist",
+                )
+
+        if booking.booker != thing.owner:
+            context = {"declined": False, "booking": booking}
+            EmailInterface.send_mail(
+                template_name="things/notify_booking_status_changed",
+                context=context,
+                to_address=booking.booker.username,
+                subject="[Thingbooker] Bookingen din er godtatt",
+            )
 
         return ThingbookerResponse(code=200, payload=payload)

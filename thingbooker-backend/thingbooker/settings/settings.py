@@ -96,6 +96,8 @@ TEMPLATES = [
     },
 ]
 
+DATETIME_FORMAT = "d.m.Y H:i T"
+
 
 #############
 # Databases #

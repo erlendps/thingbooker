@@ -1,0 +1,7 @@
+Hei {{ booking.booker.first_name }}!
+
+Bookingen din av {{ booking.thing.name }} fra {{ booking.start_date|date }} til {{ booking.end_date|date }}
+er blitt {% if declined %}avvist.{% else %}godtatt!{% endif %}
+
+
+Hilsen Thingbooker
