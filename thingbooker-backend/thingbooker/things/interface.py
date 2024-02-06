@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
 from thingbooker.base_types import ThingbookerResponse
+from thingbooker.mail.interface import EmailInterface
 from thingbooker.things.enums import BookingStatusEnum
 
 if TYPE_CHECKING:
@@ -65,6 +67,15 @@ class ThingInterface:
             return ThingbookerResponse(code=400, payload=payload)
 
         booking = serializer.save(thing=thing, booker=user)
+
+        url = f"{settings.CLIENT_BASE_URL}things/{thing.name}/"
+        context = {"booking": booking, "thing": thing, "update_status_url": url}
+        EmailInterface.send_mail(
+            template_name="notify_owner_of_new_booking",
+            context=context,
+            to_address=thing.owner.username,
+            subject="[Thingbooker] Ny booking",
+        )
 
         return ThingbookerResponse(code=201, payload=booking)
 

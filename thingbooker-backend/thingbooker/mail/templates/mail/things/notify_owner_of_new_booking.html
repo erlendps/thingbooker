@@ -1,0 +1,13 @@
+<p>Hei {{ thing.owner.first_name }}!</p>
+<p>
+  {{ booking.booker.first_name }} har spurt deg om han kan booke {{ thing.name }} fra
+  {{ booking.start_date|date:"d.m.Y H:i T" }} til {{ booking.end_date|date:"d.m.Y H:i T" }}.
+</p>
+<p>
+  Du kan godta eller avslå forespørselen ved å trykke på denne linken:
+  <br>
+  <a href={{ update_status_url }} target="_blank">{{ update_status_url }}</a>
+</p>
+<br>
+<br>
+<p>Hilsen ThingBooker</p>
