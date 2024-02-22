@@ -24,5 +24,6 @@
     "handlebars",
     "hbs",
     "mustache"
-  ]
+  ],
+  "svelte.enable-ts-plugin": true
 }
