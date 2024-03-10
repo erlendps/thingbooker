@@ -16,6 +16,7 @@ from thingbooker.users.permissions import ThingbookerGroupPermission
 from thingbooker.users.serializers import (
     InviteTokenSerializer,
     ThingbookerGroupSerializer,
+    ThingbookerShortUserSerializer,
     ThingbookerUserSerializer,
 )
 
@@ -34,8 +35,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     An authenticated can only list users inside their own group and themselves.
     """
 
-    serializer_class = ThingbookerUserSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        """Returns the short serializer if 'short' query param is given."""
+
+        if self.request.query_params.get("short", None) == "true":
+            return ThingbookerShortUserSerializer
+        return ThingbookerUserSerializer
 
     def get_queryset(self) -> QuerySet:
         """Fetches a queryset with all users this user is in a group with"""

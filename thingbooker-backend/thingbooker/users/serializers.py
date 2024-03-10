@@ -87,6 +87,14 @@ class ThingbookerUserSerializer(UserDetailsSerializer, serializers.HyperlinkedMo
         return value
 
 
+class ThingbookerShortUserSerializer(serializers.ModelSerializer):
+    """Serializer that gives a summary of a user"""
+
+    class Meta:
+        model = get_user_model()
+        fields = ["id", "username", "avatar", "first_name"]
+
+
 class GroupSerializer(serializers.ModelSerializer):
     """Serializer for auth.Group"""
 
