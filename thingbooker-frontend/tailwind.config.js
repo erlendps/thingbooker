@@ -20,7 +20,7 @@ export default {
           950: '#171c19'
         },
         whisper: {
-          DEFAULT: '#efebf1',
+          DEFAULT: '#fdfdfd',
           dark: '#cfcfcf'
         },
         'solid-pink': {
