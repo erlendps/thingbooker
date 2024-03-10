@@ -1,5 +1,5 @@
 import type { Cookies } from '@sveltejs/kit';
-import { BACKEND_URL } from './constants';
+import { BACKEND_URL, UNPROTECTED_PAGES } from './constants';
 import { dev } from '$app/environment';
 
 /**
@@ -86,4 +86,14 @@ export const parseCookie = (cookie: string): Record<string, string> => {
       },
       { name: name }
     );
+};
+
+/**
+ * Helper function for checking if a page is protected or not.
+ *
+ * @param pageId the id of the page being accessed
+ * @returns true or false
+ */
+export const isProtectedPage = (pageId: string) => {
+  return !UNPROTECTED_PAGES.includes(pageId);
 };
