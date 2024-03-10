@@ -1,4 +1,5 @@
 import { isAuthenticated, refreshAccessToken, isProtectedPage } from '$lib/utils/auth';
+import { BACKEND_URL } from '$lib/utils/constants';
 
 /** @type {import('@sveltejs/kit').Handle}
  * \
@@ -38,5 +39,9 @@ export async function handle({ event, resolve }) {
  * protected views.
  */
 export async function handleFetch({ event, request, fetch }) {
+  const route = event.route.id;
+  if (route && isProtectedPage(route) && request.url.startsWith(BACKEND_URL)) {
+    request.headers.set('Authorization', `Bearer ${event.cookies.get('thingbooker-access-token')}`);
+  }
   return fetch(request);
 }
