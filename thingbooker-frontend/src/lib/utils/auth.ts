@@ -50,6 +50,25 @@ export const refreshAccessToken = async (cookies: Cookies) => {
 };
 
 /**
+ * Function that gives a definite answer whether the user is authenticated or not.
+ *
+ * The function first checks if the user is authenticated (has a access token). If not
+ * it tries to reauthenticate with the refresh token. We then return the result
+ * of that reauthentication.
+ *
+ * If the user is authenticated we return true.
+ *
+ * @param cookies The svelte cookies API
+ * @returns true if the user is authenticated, false otherwise.
+ */
+export const reauthenticateIfUnauthenticated = async (cookies: Cookies) => {
+  if (!isAuthenticated(cookies)) {
+    return await refreshAccessToken(cookies);
+  }
+  return true;
+};
+
+/**
  * Sets a cookie based on the data gathered from cookieString.
  *
  * @param cookies svelte cookies api
