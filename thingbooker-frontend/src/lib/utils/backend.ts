@@ -8,12 +8,16 @@ const createFormData = ({ ...fields }) => {
   return data;
 };
 
-const api = {
+const auth = {
   loginUser: async (username: string, password: string) => {
     const data = createFormData({ username: username, password: password });
 
     return await fetch(BACKEND_URL + 'auth/login/', { method: 'POST', body: data });
   }
+};
+
+const api = {
+  auth
 };
 
 export default api;
