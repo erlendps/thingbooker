@@ -1,15 +1,19 @@
 import { BACKEND_URL } from './constants';
 
-const login = async (username: string, password: string) => {
+const createFormData = ({ ...fields }) => {
   const data = new FormData();
-  data.append('username', username);
-  data.append('password', password);
-
-  return await fetch(BACKEND_URL + 'auth/login/', { method: 'POST', body: data });
+  for (const [field, value] of Object.entries(fields)) {
+    data.append(field, value);
+  }
+  return data;
 };
 
 const api = {
-  loginUser: login
+  loginUser: async (username: string, password: string) => {
+    const data = createFormData({ username: username, password: password });
+
+    return await fetch(BACKEND_URL + 'auth/login/', { method: 'POST', body: data });
+  }
 };
 
 export default api;
