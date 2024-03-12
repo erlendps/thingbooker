@@ -73,6 +73,9 @@ class ThingbookerUserSerializer(UserDetailsSerializer, serializers.HyperlinkedMo
     def validate_avatar(self, value):
         """Validates image is squared and filesize is low enough."""
 
+        if not value:
+            return value
+
         filesize = value.size
         width, height = get_image_dimensions(value)
 
@@ -113,9 +116,13 @@ class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ThingbookerGroup
         fields = ["url", "id", "name", "group_picture", "owner", "members"]
+        read_only_fields = ["owner"]
 
     def validate_group_picture(self, value):
         """Validates the size of the group picture."""
+
+        if not value:
+            return value
 
         filesize = value.size
 
@@ -129,7 +136,9 @@ class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data: dict[str, Any]) -> ThingbookerGroup:
         """When creating a thingbooker group, also create the auth.Group instance and link it."""
 
-        return ThingbookerGroupInterface.create_with_group(**validated_data)
+        owner: ThingbookerUser = self.context.get("request", {"user": None}).user
+
+        return ThingbookerGroupInterface.create_with_group(owner=owner, **validated_data)
 
 
 class InviteTokenSerializer(serializers.HyperlinkedModelSerializer):
