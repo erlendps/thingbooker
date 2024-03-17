@@ -287,14 +287,73 @@ const groups = {
   }
 };
 
-const THINGS_URL = BACKEND_URL + 'things/';
-const things = { THINGS_URL };
-
 const BOOKINGS_URL = BACKEND_URL + 'bookings/';
-const bookings = { BOOKINGS_URL };
+const bookings = {
+  BOOKINGS_URL,
+  /**
+   * Fetches all the bookings that are known to the user.
+   *
+   * @returns response from backend
+   */
+  getAllBookings: async () => {
+    return await fetch(BOOKINGS_URL);
+  },
+  /**
+   * Fetches the given booking, if it is known to the user.
+   *
+   * @param bookingId
+   * @returns response from backend
+   */
+  getBooking: async (bookingId: string) => {
+    return await fetch(BOOKINGS_URL + `${bookingId}/`);
+  },
+  /**
+   * Deletes the given booking. Only the owner of the thing or the owner of the booker
+   * can delete it.
+   *
+   * @param bookingId
+   * @returns response from backend
+   */
+  deleteBooking: async (bookingId: string) => {
+    return await fetch(BOOKINGS_URL + `${bookingId}/`, { method: 'DELETE' });
+  },
+  /**
+   * Updates the given booking.
+   *
+   * It can update number of people, start date or end date. Only the owner of the
+   * booking can update it.
+   *
+   * @param bookingId
+   * @param object with the optional fields
+   * @returns response from backend
+   */
+  updateBooking: async (
+    bookingId: string,
+    {
+      numPeople,
+      startDate,
+      endDate
+    }: {
+      numPeople?: number;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ) => {
+    const data = createFormData({
+      num_people: numPeople,
+      start_date: startDate,
+      end_date: endDate
+    });
+
+    return await fetch(BOOKINGS_URL + `${bookingId}/`, { method: 'PATCH', body: data });
+  }
+};
 
 const RULES_URL = BACKEND_URL + 'rules/';
 const rules = { RULES_URL };
+
+const THINGS_URL = BACKEND_URL + 'things/';
+const things = { THINGS_URL };
 
 const api = {
   accounts,
