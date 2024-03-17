@@ -350,7 +350,50 @@ const bookings = {
 };
 
 const RULES_URL = BACKEND_URL + 'rules/';
-const rules = { RULES_URL };
+const rules = {
+  RULES_URL,
+  /**
+   * Fetches all the rules known to the user.
+   *
+   * @returns response from backend
+   */
+  getAllRules: async () => {
+    return await fetch(RULES_URL);
+  },
+  /**
+   * Fetches the given rule, if it is known.
+   *
+   * @param ruleId
+   * @returns response from backend
+   */
+  getRule: async (ruleId: string) => {
+    return await fetch(RULES_URL + `${ruleId}/`);
+  },
+  /**
+   * Deletes the given rule. Only the owner of the related thing can delete it.
+   *
+   * @param ruleId
+   * @returns response from backend
+   */
+  deleteRule: async (ruleId: string) => {
+    return await fetch(RULES_URL + `${ruleId}/`, { method: 'DELETE' });
+  },
+  /**
+   * Updates the given rule. One can update the fields short and description.
+   *
+   * @param ruleId
+   * @param object which contains the optional fields
+   * @returns response from backend
+   */
+  updateRule: async (
+    ruleId: string,
+    { short, description }: { short?: string; description?: string }
+  ) => {
+    const data = createFormData({ short, description });
+
+    return await fetch(RULES_URL + `${ruleId}/`, { method: 'PATCH', body: data });
+  }
+};
 
 const THINGS_URL = BACKEND_URL + 'things/';
 const things = { THINGS_URL };
