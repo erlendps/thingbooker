@@ -66,6 +66,7 @@ class ThingSerializer(serializers.HyperlinkedModelSerializer):
             "bookings",
             "rules",
         ]
+        read_only_fields = ["id", "url", "owner", "members", "bookings", "rules"]
 
 
 class CreateThingSerializer(serializers.ModelSerializer):
