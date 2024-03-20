@@ -1,4 +1,5 @@
 import { BACKEND_URL } from './constants';
+import type { CreateRuleType } from '$lib/types';
 
 const createFormData = ({ ...fields }) => {
   const data = new FormData();
@@ -257,7 +258,7 @@ const groups = {
   inviteMemberToGroup: async (groupId: string, email: string) => {
     const data = createFormData({ email });
 
-    return await fetch(GROUPS_URL + `${groupId}/invite_member/`, { method: 'POST', body: data });
+    return await fetch(GROUPS_URL + `${groupId}/invite-member/`, { method: 'POST', body: data });
   },
   /**
    * Accepts a group invite.
@@ -396,7 +397,154 @@ const rules = {
 };
 
 const THINGS_URL = BACKEND_URL + 'things/';
-const things = { THINGS_URL };
+const things = {
+  THINGS_URL,
+  /**
+   * Fetches all things that are known to this user.
+   *
+   * @returns response from backend
+   */
+  getAllThings: async () => {
+    return await fetch(THINGS_URL);
+  },
+  /**
+   * Creates a new thing and sets the user that created it as the owner.
+   *
+   * @param name
+   * @param description
+   * @param members
+   * @param rules
+   * @param picture
+   * @returns response from backend
+   */
+  createThing: async (
+    name: string,
+    description: string,
+    members: string[],
+    rules: CreateRuleType[],
+    picture?: File
+  ) => {
+    const data = createFormData({ name, description, members, rules, picture });
+
+    return await fetch(THINGS_URL, { method: 'POST', body: data });
+  },
+  /**
+   * Fetches a specific thing.
+   *
+   * @param thingId
+   * @returns response from backend
+   */
+  getThing: async (thingId: string) => {
+    return await fetch(THINGS_URL + `${thingId}/`);
+  },
+  /**
+   * Updates the given thing. Only the owner can do this.
+   * The field you can update are: name, description and picture
+   *
+   * Members, rules and bookings shall be done with their own api endpoints.
+   *
+   * @param thingId
+   * @param object with the fields you can update. Each field is optional
+   * @returns response from backend
+   */
+  updateThing: async (
+    thingId: string,
+    {
+      name,
+      description,
+      picture
+    }: {
+      name?: string;
+      description?: string;
+      picture?: File;
+    }
+  ) => {
+    const data = createFormData({ name, description, picture });
+
+    return await fetch(THINGS_URL + `${thingId}/`, { method: 'PATCH', body: data });
+  },
+  /**
+   * Deletes the given thing. Only owner can do this.
+   *
+   * @param thingId
+   * @returns response from backend
+   */
+  deleteThing: async (thingId: string) => {
+    return await fetch(THINGS_URL + `${thingId}/`, { method: 'DELETE' });
+  },
+  /**
+   * Adds a rule to the given thing. Only the owner of the thing can do this.
+   *
+   * @param thingId
+   * @param short short description of rule
+   * @param description
+   * @returns response from backend
+   */
+  addRule: async (thingId: string, short: string, description: string) => {
+    const data = createFormData({ short, description });
+
+    return await fetch(THINGS_URL + `${thingId}/add-rule/`, { method: 'POST', body: data });
+  },
+  /**
+   * Tries to book the given thing at the given start date and end date.
+   *
+   * @param thingId
+   * @param startDate
+   * @param endDate
+   * @param numPeople
+   * @returns response from backend
+   */
+  addBooking: async (thingId: string, startDate: Date, endDate: Date, numPeople: number) => {
+    const data = createFormData({
+      start_date: startDate,
+      end_date: endDate,
+      num_people: numPeople
+    });
+
+    return await fetch(THINGS_URL + `${thingId}/add-booking/`, { method: 'POST', body: data });
+  },
+  /**
+   * Updates the status of a booking related to a thing. Only the owner can do this.
+   *
+   * @param thingId
+   * @param bookingId
+   * @param newStatus
+   * @param declineOverlapping default `true`. If this is set, it will automatically decline
+   * all other bookings that overlaps with the accepted booking.
+   * @returns response from backend
+   */
+  updateBookingStatus: async (
+    thingId: string,
+    bookingId: string,
+    newStatus: string,
+    declineOverlapping: boolean = true
+  ) => {
+    const data = createFormData({ new_status: newStatus, decline_overlapping: declineOverlapping });
+
+    return await fetch(THINGS_URL + `${thingId}/update-booking-status/${bookingId}/`, {
+      method: 'POST',
+      body: data
+    });
+  },
+  /**
+   * Fetches all the rules for the thing
+   *
+   * @param thingId
+   * @returns response from backend
+   */
+  rulesForThing: async (thingId: string) => {
+    return await fetch(THINGS_URL + `${thingId}/all-rules/`);
+  },
+  /**
+   * Fetches all the bookings for the thing
+   *
+   * @param thingId
+   * @returns response from backend
+   */
+  bookingsForThing: async (thingId: string) => {
+    return await fetch(THINGS_URL + `${thingId}/all-bookings/`);
+  }
+};
 
 const api = {
   accounts,
