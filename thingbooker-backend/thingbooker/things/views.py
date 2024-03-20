@@ -113,7 +113,7 @@ class ThingViewSet(viewsets.ModelViewSet):
         user = self.request.user
         serializer.save(owner=user)
 
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=["POST"], url_path="add-rule/")
     def add_rule(self, request: ThingbookerRequest, *args, **kwargs):
         """Action for adding a rule to the thing"""
 
@@ -126,7 +126,7 @@ class ThingViewSet(viewsets.ModelViewSet):
             return Response(data=self.get_serializer(rule).data, status=status.HTTP_201_CREATED)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=["POST"], url_path="add-booking/")
     def add_booking(self, request: ThingbookerRequest, *args, **kwargs):
         """Action for adding a new booking to the thing."""
 
@@ -164,7 +164,7 @@ class ThingViewSet(viewsets.ModelViewSet):
         action = serializer.save()
 
         if action == BookingStatusEnum.ACCEPTED:
-            decline_overlapping: bool = request.query_params.get("decline_overlapping", True)
+            decline_overlapping: bool = request.query_params.get("decline-overlapping", True)
             response = ThingInterface.accept_booking(thing, booking, decline_overlapping)
             return Response(data=response.payload, status=response.code)
 
@@ -172,7 +172,7 @@ class ThingViewSet(viewsets.ModelViewSet):
         booking.save()
         return Response(data={"declined": "Booking was declined"}, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["GET"])
+    @action(detail=True, methods=["GET"], url_path="all-rules/")
     def all_rules(self):
         """Fetches all rules for the thing"""
 
@@ -182,7 +182,7 @@ class ThingViewSet(viewsets.ModelViewSet):
 
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["GET"])
+    @action(detail=True, methods=["GET"], url_path="all-bookings")
     def all_bookings(self):
         """Fetches all bookings (waiting or accepted) for the thing"""
 

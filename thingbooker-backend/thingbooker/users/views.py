@@ -71,7 +71,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         return user.thingbooker_groups
 
-    @action(detail=True, methods=["POST"])
+    @action(detail=True, methods=["POST"], url_path="invite-member/")
     def invite_member(self, request: ThingbookerRequest, pk: UUID | None = None, format=None):
         """Invites one or more members to a group."""
 
