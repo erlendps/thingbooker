@@ -34,11 +34,15 @@ class EditBookingStatusSerializer(serializers.Serializer):
     """Serializer for editing status"""
 
     new_status = serializers.ChoiceField(choices=BookingStatusEnum.update_choices())
+    decline_overlapping = serializers.BooleanField(default=True)
 
     def create(self, validated_data: Any) -> Any:
-        """Returns an enum instance"""
+        """Returns a tuple of an enum instance and a boolean"""
 
-        return BookingStatusEnum[validated_data["new_status"]]
+        return (
+            BookingStatusEnum[validated_data["new_status"]],
+            validated_data["decline_overlapping"],
+        )
 
 
 class RuleSerializer(serializers.HyperlinkedModelSerializer):

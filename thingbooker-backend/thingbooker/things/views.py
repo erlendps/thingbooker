@@ -161,10 +161,9 @@ class ThingViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        action = serializer.save()
+        action, decline_overlapping = serializer.save()
 
         if action == BookingStatusEnum.ACCEPTED:
-            decline_overlapping: bool = request.query_params.get("decline-overlapping", True)
             response = ThingInterface.accept_booking(thing, booking, decline_overlapping)
             return Response(data=response.payload, status=response.code)
 
