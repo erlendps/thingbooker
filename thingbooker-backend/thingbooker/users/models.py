@@ -98,11 +98,6 @@ class ThingbookerUser(AbstractUser, ThingbookerModel):
         except ObjectDoesNotExist:
             return None
 
-    def get_all_groups(self):
-        """Fetches all thingbooker groups for this user."""
-
-        return self.groups.select_related("thingbooker_group").all()
-
     def __str__(self) -> str:
         return str(self.username)
 
