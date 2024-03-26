@@ -73,7 +73,6 @@ class ThingbookerGroupInterface:
         # add user to group
         group = token.group
         group.members.add(user)
-        group.save()
 
         # set token as used
         token.used_at = timezone.now()

@@ -212,3 +212,31 @@ class AcceptInviteToken(GenericToken):
         """Returns a 'clickable' url that is sent in the mail to the user being invited."""
 
         return super().get_clickable_url("accept-invite")
+
+
+class AcceptThingInviteToken(GenericToken):
+    """
+    Token for accepting a thing invite.
+
+    user is the invited user, thing is the Thing that the user is invited to.
+    """
+
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="thing_invites",
+    )
+
+    thing: Thing = models.ForeignKey(
+        "things.Thing",
+        on_delete=models.CASCADE,
+        related_name="invite_tokens",
+    )
+
+    class Meta:
+        unique_together = ("user", "token")
+
+    def get_clickable_url(self) -> str:
+        """Returns a 'clickable' url that is sent in the mail to the user being invited."""
+
+        return super().get_clickable_url("accept-thing-invite")
