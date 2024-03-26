@@ -54,7 +54,7 @@ class ThingbookerGroupInterface:
         )
         context = {"token": invite_token, "group": group, "invited_by": inviter, "user": user}
         EmailInterface.send_mail(
-            template_name="invite_user_to_group",
+            template_name="users/invite_user_to_group",
             context=context,
             to_address=user.username,
             subject=cls.DEFAULT_INVITE_SUBJECT,
