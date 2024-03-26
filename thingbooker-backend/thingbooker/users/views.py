@@ -9,9 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from thingbooker.base_permissions import IsAdminUser
-from thingbooker.users.enums import GroupMemberStatusEnum
+from thingbooker.users.enums import MembershipStatusEnum
 from thingbooker.users.interface import ThingbookerGroupInterface
-from thingbooker.users.models import AcceptInviteToken, ThingbookerUser
+from thingbooker.users.models import AcceptGroupInviteToken, ThingbookerUser
 from thingbooker.users.permissions import ThingbookerGroupPermission
 from thingbooker.users.serializers import (
     InviteTokenSerializer,
@@ -95,9 +95,9 @@ class GroupViewSet(viewsets.ModelViewSet):
                 return Response(invite_successful_msg, status=status.HTTP_200_OK)
 
             result = ThingbookerGroupInterface.invite_user_to_group(invited_user, group, user)
-            if result == GroupMemberStatusEnum.MEMBER:
+            if result == MembershipStatusEnum.MEMBER:
                 msg = {"message": "User is already a member of the group"}
-            elif result == GroupMemberStatusEnum.ALREADY_INVITED:
+            elif result == MembershipStatusEnum.ALREADY_INVITED:
                 msg = {"message": "User is already invited to the group"}
             else:
                 msg = invite_successful_msg
@@ -107,12 +107,12 @@ class GroupViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class InviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
+class GroupInviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
     """Provides list and retrieve actions for AcceptInviteToken model."""
 
     serializer_class = InviteTokenSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
-    queryset = AcceptInviteToken.objects.all()
+    queryset = AcceptGroupInviteToken.objects.all()
 
     @action(
         methods=["GET", "POST"],
@@ -124,7 +124,7 @@ class InviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
         """Accepts a invite to a group"""
 
         user = request.user
-        invite_token: AcceptInviteToken = AcceptInviteToken.objects.get_or_none(
+        invite_token: AcceptGroupInviteToken = AcceptGroupInviteToken.objects.get_or_none(
             user=user, token=token
         )
 

@@ -185,7 +185,7 @@ class GenericToken(ThingbookerModel):
         return self.is_used or self.is_expired
 
 
-class AcceptInviteToken(GenericToken):
+class AcceptGroupInviteToken(GenericToken):
     """
     Token for accepting an invite.
 

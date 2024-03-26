@@ -1,8 +1,8 @@
 from django.db.models import TextChoices
 
 
-class GroupMemberStatusEnum(TextChoices):
-    """Enum for status of a (potential) member in a group"""
+class MembershipStatusEnum(TextChoices):
+    """Enum for status of a (potential) member in a group or a thing"""
 
     NOT_MEMBER = ("not_member", "User is not a member and hasn't any active invites")
     SENT_INVITE = ("sent_invite", "An invite has been sent to the user")

@@ -7,8 +7,8 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 
 from thingbooker.mail.interface import EmailInterface
-from thingbooker.users.enums import GroupMemberStatusEnum, InviteStatusEnum
-from thingbooker.users.models import AcceptInviteToken, ThingbookerGroup
+from thingbooker.users.enums import InviteStatusEnum, MembershipStatusEnum
+from thingbooker.users.models import AcceptGroupInviteToken, ThingbookerGroup
 
 if TYPE_CHECKING:
     from thingbooker.users.models import ThingbookerUser
@@ -38,18 +38,20 @@ class ThingbookerGroupInterface:
     @classmethod
     def invite_user_to_group(
         cls, user: ThingbookerUser, group: ThingbookerGroup, inviter: ThingbookerUser
-    ) -> GroupMemberStatusEnum:
+    ) -> MembershipStatusEnum:
         """Method for inviting a user to a group. Sends an email with a activation link."""
 
         if group.user_is_member(user):
-            return GroupMemberStatusEnum.MEMBER
+            return MembershipStatusEnum.MEMBER
 
-        elif AcceptInviteToken.objects.get_or_none(
+        elif AcceptGroupInviteToken.objects.get_or_none(
             user=user, group=group, expires_at__gt=timezone.now()
         ):
-            return GroupMemberStatusEnum.ALREADY_INVITED
+            return MembershipStatusEnum.ALREADY_INVITED
 
-        invite_token: AcceptInviteToken = AcceptInviteToken.objects.create(user=user, group=group)
+        invite_token: AcceptGroupInviteToken = AcceptGroupInviteToken.objects.create(
+            user=user, group=group
+        )
         context = {"token": invite_token, "group": group, "invited_by": inviter, "user": user}
         EmailInterface.send_mail(
             template_name="invite_user_to_group",
@@ -57,11 +59,11 @@ class ThingbookerGroupInterface:
             to_address=user.username,
             subject=cls.DEFAULT_INVITE_SUBJECT,
         )
-        return GroupMemberStatusEnum.SENT_INVITE
+        return MembershipStatusEnum.SENT_INVITE
 
     @classmethod
     def accept_group_invite(
-        cls, user: ThingbookerUser, token: AcceptInviteToken
+        cls, user: ThingbookerUser, token: AcceptGroupInviteToken
     ) -> InviteStatusEnum:
         """Method for accepting a group invite. Will add the user to the group."""
 

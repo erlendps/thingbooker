@@ -10,7 +10,7 @@ from django.core.files.images import get_image_dimensions
 from rest_framework import serializers
 
 from thingbooker.users.interface import ThingbookerGroupInterface
-from thingbooker.users.models import AcceptInviteToken, ThingbookerGroup
+from thingbooker.users.models import AcceptGroupInviteToken, ThingbookerGroup
 from thingbooker.utils import hash_token
 
 if TYPE_CHECKING:
@@ -148,7 +148,7 @@ class InviteTokenSerializer(serializers.HyperlinkedModelSerializer):
     email = serializers.EmailField(write_only=True)
 
     class Meta:
-        model = AcceptInviteToken
+        model = AcceptGroupInviteToken
         fields = [
             "url",
             "group",
@@ -161,7 +161,7 @@ class InviteTokenSerializer(serializers.HyperlinkedModelSerializer):
         ]
         read_only_fields = ["expires_at", "used_at", "created_at", "group", "user"]
 
-    def get_hashed_token(self, obj: AcceptInviteToken):
+    def get_hashed_token(self, obj: AcceptGroupInviteToken):
         """Returns a hashed version of the token"""
 
         return hash_token(obj.token)
