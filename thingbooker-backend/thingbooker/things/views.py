@@ -19,6 +19,7 @@ from thingbooker.things.permissions import (
     ThingPermission,
 )
 from thingbooker.things.serializers import (
+    AddMembersSerializer,
     BookingSerializer,
     CreateThingSerializer,
     EditBookingStatusSerializer,
@@ -105,6 +106,8 @@ class ThingViewSet(viewsets.ModelViewSet):
             return RuleSerializer
         elif self.action == "add_booking":
             return BookingSerializer
+        elif self.action == "add_members":
+            return AddMembersSerializer
         return ThingSerializer
 
     def perform_create(self, serializer: CreateThingSerializer) -> None:
@@ -191,3 +194,26 @@ class ThingViewSet(viewsets.ModelViewSet):
         serializer = BookingSerializer(instance=bookings, many=True)
 
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["POST"], url_path="add-members")
+    def add_members(self, request: ThingbookerRequest):
+        """Adds users to the thing"""
+
+        thing: Thing = self.get_object()
+        serializer = AddMembersSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        users_to_add: set[ThingbookerUser]
+        users_to_invite: set[ThingbookerUser]
+        users_to_add, users_to_invite = serializer.save()
+
+        thing.members.add(*users_to_add)
+
+        data = {"users_added": [str(u.id) for u in users_to_add]}
+
+        payload = ThingInterface.invite_users_to_thing(thing=thing, users_to_invite=users_to_invite)
+        data.update(payload)
+
+        return Response(data=data, status=status.HTTP_200_OK)

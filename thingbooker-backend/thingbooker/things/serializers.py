@@ -3,15 +3,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from thingbooker.things.enums import BookingStatusEnum
 from thingbooker.things.models import Booking, Rule, Thing
+from thingbooker.users.serializers import GroupPKField
 
 if TYPE_CHECKING:
     from typing import Any
 
-    from thingbooker.users.models import ThingbookerUser
+    from thingbooker.users.models import ThingbookerGroup, ThingbookerUser
 
 
 class BookingSerializer(serializers.HyperlinkedModelSerializer):
@@ -122,3 +124,40 @@ class CreateThingSerializer(serializers.ModelSerializer):
                 Rule.objects.create(thing=thing, **rule_data)
 
         return thing
+
+
+class AddMembersSerializer(serializers.Serializer):
+    """A serializer that can contain either groups or members or both"""
+
+    groups = GroupPKField(many=True, write_only=True)
+    users = serializers.ListField(child=serializers.EmailField())
+
+    def create(self, validated_data: serializers.Any) -> tuple[set[ThingbookerUser], set[str]]:
+        """
+        Concatenates the users in the group with the users list.
+
+        For groups and known users, the users are automatically added. For unknown
+        users they are invited.
+        """
+
+        user: ThingbookerUser = self.context.get("request", {"user": None}).user
+
+        groups: list[ThingbookerGroup] = validated_data.get("groups", [])
+        emails_to_invite: set[str] = set(validated_data.get("users", []))
+        users_to_add = set()
+        users_to_invite = set()
+
+        if groups:
+            auth_groups = [g.group for g in groups]
+            users_to_add = set(
+                get_user_model().objects.filter(groups__in=auth_groups).distinct("username")
+            )
+
+        if user and emails_to_invite:
+            qs = user.get_all_known_users().filter(username__in=emails_to_invite)
+            users_to_add |= set(qs)
+            emails_to_invite -= set(qs.values_list("username", flat=True))
+            # sanitize, only invite thingbooker users
+            users_to_invite = set(get_user_model().objects.filter(username__in=emails_to_invite))
+
+        return users_to_add, users_to_invite
