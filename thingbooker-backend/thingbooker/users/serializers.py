@@ -165,3 +165,16 @@ class InviteTokenSerializer(serializers.HyperlinkedModelSerializer):
         """Returns a hashed version of the token"""
 
         return hash_token(obj.token)
+
+
+class GroupPKField(serializers.PrimaryKeyRelatedField):
+    """Custom field for group PK"""
+
+    def get_queryset(self) -> serializers.QuerySet:
+        """Fetches the queryset based on the groups of the user"""
+
+        user: ThingbookerUser = self.context.get("request", {"user": None}).user
+
+        if user:
+            return user.thingbooker_groups.select_related("group")
+        return ThingbookerGroup.objects.none()
