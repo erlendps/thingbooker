@@ -57,6 +57,11 @@ class Thing(ThingbookerModel):
     class Meta:
         permissions = [("can_manage_booking", "User can manage (accept/decline) booking")]
 
+    def user_is_member(self, user: ThingbookerUser):
+        """Returns true if the user is a member."""
+
+        return self.members.contains(user)
+
     def __str__(self) -> str:
         return f"{self.name} with owner {self.owner}"
 

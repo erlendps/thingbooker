@@ -9,12 +9,16 @@ from django.utils import timezone
 from thingbooker.base_types import ThingbookerResponse
 from thingbooker.mail.interface import EmailInterface
 from thingbooker.things.enums import BookingStatusEnum
+from thingbooker.users.enums import MembershipStatusEnum
+from thingbooker.users.models import AcceptThingInviteToken
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from datetime import datetime
 
     from thingbooker.things.models import Booking, Thing
     from thingbooker.things.serializers import BookingSerializer
+    from thingbooker.things.types import ThingInviteDict
     from thingbooker.users.models import ThingbookerUser
 
 
@@ -107,7 +111,7 @@ class ThingInterface:
                     template_name="things/notify_booking_status_changed",
                     context=context,
                     to_address=b.booker.username,
-                    subject="[Thingbooker] Bookingen din er avist",
+                    subject="[Thingbooker] Bookingen din er avvist",
                 )
 
         if booking.booker != thing.owner:
@@ -119,4 +123,39 @@ class ThingInterface:
                 subject="[Thingbooker] Bookingen din er godtatt",
             )
 
+        return ThingbookerResponse(code=200, payload=payload)
+
+    @classmethod
+    def invite_users_to_thing(cls, thing: Thing, users_to_invite: Iterable[ThingbookerUser]):
+        """Invites the users in user_emails"""
+
+        payload: dict[str, list[ThingInviteDict]] = {"users_invited": []}
+        for user in users_to_invite:
+            if thing.user_is_member(user):
+                payload["users_invited"].append(
+                    {"id": str(user.id), "status": MembershipStatusEnum.MEMBER}
+                )
+                continue
+
+            elif AcceptThingInviteToken.objects.get_or_none(
+                user=user, thing=thing, expires_at__gt=timezone.now()
+            ):
+                payload["users_invited"].append(
+                    {"id": str(user.id), "status": MembershipStatusEnum.ALREADY_INVITED}
+                )
+                continue
+
+            invite_token: AcceptThingInviteToken = AcceptThingInviteToken.objects.create(
+                user=user, thing=thing
+            )
+            context = {"token": invite_token, "thing": thing, "user": user}
+            EmailInterface.send_mail(
+                template_name="things/invite_user_to_thing",
+                context=context,
+                to_address=user.username,
+                subject="[Thingbooker] Du har blitt invitert til en ting!",
+            )
+            payload["users_invited"].append(
+                {"id": str(user.id), "status": MembershipStatusEnum.SENT_INVITE}
+            )
         return ThingbookerResponse(code=200, payload=payload)

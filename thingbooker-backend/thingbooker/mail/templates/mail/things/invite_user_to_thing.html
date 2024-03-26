@@ -1,0 +1,9 @@
+<p>Hei, {{ user.first_name }}!</p>
+<p>
+  {{ thing.owner.first_name }} har invitert deg til tingen sin, {{ thing.name }}.
+  <br>
+  For å godta invitasjonen kan du trykke på denne linken:
+  <br>
+  {{ token.get_clickable_url }}
+</p>
+<p>Hilsen Thingbooker</p>
