@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from thingbooker.things.enums import BookingStatusEnum
+from thingbooker.things.interface import ThingInterface
 from thingbooker.things.models import Booking, Rule, Thing
 from thingbooker.users.serializers import GroupPKField
 
@@ -75,57 +76,6 @@ class ThingSerializer(serializers.HyperlinkedModelSerializer):
         read_only_fields = ["id", "url", "owner", "members", "bookings", "rules"]
 
 
-class CreateThingSerializer(serializers.ModelSerializer):
-    """Serializer for creating a thing, has a nested serializer for rules"""
-
-    rules = RuleSerializer(many=True, required=False)
-
-    class Meta:
-        model = Thing
-        fields = ["name", "description", "picture", "members", "rules"]
-
-    def validate_picture(self, value):
-        """Validates image is filesize is low enough."""
-
-        if not value:
-            return value
-        filesize = value.size
-
-        if filesize > settings.MEGABYTE_LIMIT * 1024 * 1024:
-            raise serializers.ValidationError(
-                f"Image is over max file size (>{settings.MEGABYTE_LIMIT * 1024 * 1024})"
-            )
-
-        return value
-
-    def validate_name(self, value):
-        """Validates that the user is not part of a thing with the same name"""
-
-        owner: ThingbookerUser = self.context.get("request", {"user": None}).user
-        if owner and owner.things.filter(name=value).exists():
-            raise serializers.ValidationError(f"Already part of a group with name: {value}.")
-
-    def create(self, validated_data: Any) -> Thing:
-        """Creates the thing along with related rules"""
-
-        rules_data = validated_data.pop("rules", None)
-
-        members = validated_data.pop("members", [])
-        owner: ThingbookerUser = validated_data.get("owner", None)
-
-        thing: Thing = Thing.objects.create(**validated_data)
-
-        if owner:
-            members.append(owner)
-        thing.members.add(*members)
-
-        if rules_data:
-            for rule_data in rules_data:
-                Rule.objects.create(thing=thing, **rule_data)
-
-        return thing
-
-
 class AddMembersSerializer(serializers.Serializer):
     """A serializer that can contain either groups or members or both"""
 
@@ -161,3 +111,63 @@ class AddMembersSerializer(serializers.Serializer):
             users_to_invite = set(get_user_model().objects.filter(username__in=emails_to_invite))
 
         return users_to_add, users_to_invite
+
+
+class CreateThingSerializer(serializers.ModelSerializer):
+    """Serializer for creating a thing, has a nested serializer for rules and members"""
+
+    rules = RuleSerializer(many=True, required=False)
+    members = AddMembersSerializer(required=False)
+
+    class Meta:
+        model = Thing
+        fields = ["name", "description", "picture", "members", "rules"]
+
+    def validate_picture(self, value):
+        """Validates image is filesize is low enough."""
+
+        if not value:
+            return value
+        filesize = value.size
+
+        if filesize > settings.MEGABYTE_LIMIT * 1024 * 1024:
+            raise serializers.ValidationError(
+                f"Image is over max file size (>{settings.MEGABYTE_LIMIT * 1024 * 1024})"
+            )
+
+        return value
+
+    def validate_name(self, value):
+        """Validates that the user is not part of a thing with the same name"""
+
+        owner: ThingbookerUser = self.context.get("request", {"user": None}).user
+        if owner and owner.things.filter(name=value).exists():
+            raise serializers.ValidationError(f"Already part of a group with name: {value}.")
+
+    def create(self, validated_data: Any) -> Thing:
+        """Creates the thing along with related rules"""
+
+        rules_data = validated_data.pop("rules", None)
+        members_data = validated_data.pop("members", None)
+
+        owner: ThingbookerUser = validated_data.get("owner", None)
+        members: list[ThingbookerUser] = []
+
+        thing: Thing = Thing.objects.create(**validated_data)
+
+        if members_data:
+            members_serializer = AddMembersSerializer(data=members_data, context=self.context)
+            if members_serializer.is_valid(raise_exception=True):
+                members, users_to_invite = members_serializer.save()
+                ThingInterface.invite_users_to_thing(thing=thing, users_to_invite=users_to_invite)
+
+        if owner:
+            members.append(owner)
+
+        thing.members.append(*members)
+
+        if rules_data:
+            for rule_data in rules_data:
+                Rule.objects.create(thing=thing, **rule_data)
+
+        return thing
