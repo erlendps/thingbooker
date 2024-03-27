@@ -10,7 +10,11 @@ from django.core.files.images import get_image_dimensions
 from rest_framework import serializers
 
 from thingbooker.users.interface import ThingbookerGroupInterface
-from thingbooker.users.models import AcceptGroupInviteToken, ThingbookerGroup
+from thingbooker.users.models import (
+    AcceptGroupInviteToken,
+    AcceptThingInviteToken,
+    ThingbookerGroup,
+)
 from thingbooker.utils import hash_token
 
 if TYPE_CHECKING:
@@ -141,7 +145,7 @@ class ThingbookerGroupSerializer(serializers.HyperlinkedModelSerializer):
         return ThingbookerGroupInterface.create_with_group(owner=owner, **validated_data)
 
 
-class InviteTokenSerializer(serializers.HyperlinkedModelSerializer):
+class GroupInviteTokenSerializer(serializers.HyperlinkedModelSerializer):
     """Serializer class for AcceptInviteToken model."""
 
     hashed_token = serializers.SerializerMethodField(read_only=True)
@@ -162,6 +166,30 @@ class InviteTokenSerializer(serializers.HyperlinkedModelSerializer):
         read_only_fields = ["expires_at", "used_at", "created_at", "group", "user"]
 
     def get_hashed_token(self, obj: AcceptGroupInviteToken):
+        """Returns a hashed version of the token"""
+
+        return hash_token(obj.token)
+
+
+class ThingInviteTokenSerializer(serializers.HyperlinkedModelSerializer):
+    """Serializer class for AcceptInviteToken model."""
+
+    hashed_token = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = AcceptThingInviteToken
+        fields = [
+            "url",
+            "thing",
+            "user",
+            "hashed_token",
+            "expires_at",
+            "used_at",
+            "created_at",
+        ]
+        read_only_fields = ["expires_at", "used_at", "created_at", "thing", "user"]
+
+    def get_hashed_token(self, obj: AcceptThingInviteToken):
         """Returns a hashed version of the token"""
 
         return hash_token(obj.token)

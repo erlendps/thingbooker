@@ -9,23 +9,26 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from thingbooker.base_permissions import IsAdminUser
+from thingbooker.things.interface import ThingInterface
 from thingbooker.users.enums import MembershipStatusEnum
 from thingbooker.users.interface import ThingbookerGroupInterface
-from thingbooker.users.models import AcceptGroupInviteToken, ThingbookerUser
+from thingbooker.users.models import AcceptGroupInviteToken, AcceptThingInviteToken, ThingbookerUser
 from thingbooker.users.permissions import ThingbookerGroupPermission
 from thingbooker.users.serializers import (
-    InviteTokenSerializer,
+    GroupInviteTokenSerializer,
     ThingbookerGroupSerializer,
     ThingbookerShortUserSerializer,
     ThingbookerUserSerializer,
+    ThingInviteTokenSerializer,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from uuid import UUID
 
     from django.db.models.query import QuerySet
 
-    from thingbooker.base_types import ThingbookerRequest
+    from thingbooker.base_types import ThingbookerRequest, ThingbookerResponse
     from thingbooker.users.models import ThingbookerGroup
 
 
@@ -77,7 +80,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         user = request.user
         group: ThingbookerGroup = self.get_object()
-        serializer = InviteTokenSerializer(data=request.data)
+        serializer = GroupInviteTokenSerializer(data=request.data)
         if serializer.is_valid():
             email: str = serializer.validated_data.get("email")
             if not email:
@@ -107,15 +110,17 @@ class GroupViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GroupInviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
-    """Provides list and retrieve actions for AcceptInviteToken model."""
+class InviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
+    """A generic viewset for Invite Tokens. The viewset should ONLY be inherited, not used"""
 
-    serializer_class = InviteTokenSerializer
+    serializer_class = None
     permission_classes = [IsAuthenticated, IsAdminUser]
-    queryset = AcceptGroupInviteToken.objects.all()
+    klass: AcceptGroupInviteToken | AcceptThingInviteToken = None
+    accept_function: Callable[[str], ThingbookerResponse] = None
+    queryset = None
 
     @action(
-        methods=["GET", "POST"],
+        methods=["POST"],
         detail=False,
         url_path="accept-invite/(?P<token>.+)",
         permission_classes=[IsAuthenticated],
@@ -123,14 +128,33 @@ class GroupInviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
     def accept_invite(self, request: ThingbookerRequest, token: str):
         """Accepts a invite to a group"""
 
+        if self.klass is None or self.accept_function is None:
+            return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+
         user = request.user
-        invite_token: AcceptGroupInviteToken = AcceptGroupInviteToken.objects.get_or_none(
-            user=user, token=token
-        )
+        invite_token = self.klass.objects.get_or_none(user=user, token=token)
 
         if not invite_token:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        result = ThingbookerGroupInterface.accept_group_invite(user, invite_token)
+        payload = self.accept_function(invite_token)
 
-        return Response(data={"message": result.value}, status=status.HTTP_200_OK)
+        return Response(data=payload, status=status.HTTP_200_OK)
+
+
+class GroupInviteTokenViewSet(InviteTokenViewSet):
+    """Provides list and retrieve actions for AcceptInviteToken model."""
+
+    serializer_class = GroupInviteTokenSerializer
+    queryset = AcceptGroupInviteToken.objects.all()
+    klass = AcceptGroupInviteToken
+    accept_function = ThingbookerGroupInterface.accept_group_invite
+
+
+class ThingInviteTokenViewSet(InviteTokenViewSet):
+    """Provides list and retrieve actions for AcceptInviteToken model."""
+
+    serializer_class = ThingInviteTokenSerializer
+    queryset = AcceptThingInviteToken.objects.all()
+    klass = AcceptThingInviteToken
+    accept_function = ThingInterface.accept_thing_invite
