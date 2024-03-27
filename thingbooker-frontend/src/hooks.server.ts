@@ -22,9 +22,13 @@ export async function handle({ event, resolve }) {
   if (route && isProtectedPage(route)) {
     if (!isAuthenticated(event.cookies)) {
       // not a valid access token
-      if (!(await refreshAccessToken(event.cookies)))
+      if (!(await refreshAccessToken(event.cookies))) {
         // not a valid refresh token either
-        return new Response('Redirect', { status: 303, headers: { Location: '/login' } });
+        const path = event.url.pathname;
+        // redirect to attempted page access after login
+        const redirectUrl = '/login' + `?next=${path}`;
+        return new Response('Redirect', { status: 303, headers: { Location: redirectUrl } });
+      }
     }
   }
   return await resolve(event);
