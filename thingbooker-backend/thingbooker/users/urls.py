@@ -6,4 +6,6 @@ router = SimpleRouter()
 
 router.register("accounts", UserViewSet, basename="thingbookeruser")
 router.register("groups", GroupViewSet, basename="thingbookergroup")
-router.register("invite-tokens", GroupInviteTokenViewSet, basename="thingbooker-invite-token")
+router.register(
+    "group-invite-tokens", GroupInviteTokenViewSet, basename="thingbooker-group-invite-token"
+)

@@ -191,7 +191,7 @@ const accounts = {
 };
 
 const GROUPS_URL = BACKEND_URL + 'groups/';
-const TOKENS_URL = BACKEND_URL + 'invite-tokens';
+const TOKENS_URL = BACKEND_URL + 'group-invite-tokens/';
 const groups = {
   GROUPS_URL,
   TOKENS_URL,
