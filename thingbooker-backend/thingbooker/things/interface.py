@@ -9,7 +9,7 @@ from django.utils import timezone
 from thingbooker.base_types import ThingbookerResponse
 from thingbooker.mail.interface import EmailInterface
 from thingbooker.things.enums import BookingStatusEnum
-from thingbooker.users.enums import MembershipStatusEnum
+from thingbooker.users.enums import InviteStatusEnum, MembershipStatusEnum
 from thingbooker.users.models import AcceptThingInviteToken
 
 if TYPE_CHECKING:
@@ -158,4 +158,25 @@ class ThingInterface:
             payload["users_invited"].append(
                 {"id": str(user.id), "status": MembershipStatusEnum.SENT_INVITE}
             )
+        return ThingbookerResponse(code=200, payload=payload)
+
+    @classmethod
+    def accept_thing_invite(token: AcceptThingInviteToken):
+        """Method for handling the user accepting an invite to a thing."""
+
+        if token.is_expired:
+            message = InviteStatusEnum.TOKEN_EXPIRED
+        elif token.is_used:
+            message = InviteStatusEnum.TOKEN_USED
+        else:
+            message = InviteStatusEnum.TOKEN_CONSUMED
+
+        payload = {"message": message}
+
+        thing = token.thing
+        thing.members.add(token.user)
+
+        token.used_at = timezone.now()
+        token.save()
+
         return ThingbookerResponse(code=200, payload=payload)
