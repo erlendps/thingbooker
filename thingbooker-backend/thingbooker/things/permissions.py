@@ -79,6 +79,8 @@ class ThingPermission(BasePermission):
             "destroy",
             "add_rule",
             "update_booking_status",
+            "add_members",
+            "remove_member",
         ]:
             return obj.owner == user
 

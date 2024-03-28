@@ -26,6 +26,7 @@ from thingbooker.things.serializers import (
     RuleSerializer,
     ThingSerializer,
 )
+from thingbooker.users.serializers import RemoveMemberSerializer
 
 if TYPE_CHECKING:
     from django.db.models.query import QuerySet
@@ -174,7 +175,7 @@ class ThingViewSet(viewsets.ModelViewSet):
         booking.save()
         return Response(data={"declined": "Booking was declined"}, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["GET"], url_path="all-rules/")
+    @action(detail=True, methods=["GET"], url_path="all-rules")
     def all_rules(self):
         """Fetches all rules for the thing"""
 
@@ -217,3 +218,22 @@ class ThingViewSet(viewsets.ModelViewSet):
         data.update(payload)
 
         return Response(data=data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["POST"], url_path="remove-member")
+    def remove_member(self, request: ThingbookerRequest):
+        """Removes a member from the thing (if they are a member)"""
+
+        thing: Thing = self.get_object()
+        serializer = RemoveMemberSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user_to_remove: ThingbookerUser = serializer.save()
+
+        if not thing.members.contains(user_to_remove):
+            return Response(
+                data={"error": "User is not part of this group"}, status=status.HTTP_409_CONFLICT
+            )
+        thing.members.remove(user_to_remove)
+        return Response(data={"message": "User was removed"}, status=status.HTTP_200_OK)

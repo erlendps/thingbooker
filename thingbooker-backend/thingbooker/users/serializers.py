@@ -26,6 +26,35 @@ if TYPE_CHECKING:
 MEGABYTE_LIMIT = 2
 
 
+class GroupPKField(serializers.PrimaryKeyRelatedField):
+    """Custom field for group PK"""
+
+    def get_queryset(self) -> serializers.QuerySet:
+        """Fetches the queryset based on the groups of the user"""
+
+        user: ThingbookerUser = self.context.get("request", {"user": None}).user
+
+        if user:
+            return user.thingbooker_groups.select_related("group")
+        return ThingbookerGroup.objects.none()
+
+
+class UserPKField(serializers.PrimaryKeyRelatedField):
+    """Custom field for ThingbookerUser PK"""
+
+    def get_queryset(self) -> serializers.QuerySet:
+        """
+        Fetches the qs based on the users "known" users, i.e users that are in the same
+        group as this user.
+        """
+
+        user: ThingbookerUser = self.context.get("request", {"user": None}).user
+
+        if user:
+            return user.get_all_known_users()
+        return get_user_model().objects.none()
+
+
 class ThingbookerRegisterSerializer(RegisterSerializer, serializers.ModelSerializer):
     """Custom register for thingbooker."""
 
@@ -195,14 +224,7 @@ class ThingInviteTokenSerializer(serializers.HyperlinkedModelSerializer):
         return hash_token(obj.token)
 
 
-class GroupPKField(serializers.PrimaryKeyRelatedField):
-    """Custom field for group PK"""
+class RemoveMemberSerializer(serializers.Serializer):
+    """Serializer for removing a member from a group/thing"""
 
-    def get_queryset(self) -> serializers.QuerySet:
-        """Fetches the queryset based on the groups of the user"""
-
-        user: ThingbookerUser = self.context.get("request", {"user": None}).user
-
-        if user:
-            return user.thingbooker_groups.select_related("group")
-        return ThingbookerGroup.objects.none()
+    member = UserPKField(required=True, write_only=True)
