@@ -27,7 +27,7 @@ class ThingbookerGroupPermission(permissions.BasePermission):
         if user.is_admin_user:
             return True
 
-        if view.action in ["update", "partial_update", "destroy"]:
+        if view.action in ["update", "partial_update", "destroy", "remove_member"]:
             return obj.owner == user
 
         elif view.action in ["retrieve", "invite_member"]:

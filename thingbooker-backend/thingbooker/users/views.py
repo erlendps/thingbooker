@@ -16,6 +16,7 @@ from thingbooker.users.models import AcceptGroupInviteToken, AcceptThingInviteTo
 from thingbooker.users.permissions import ThingbookerGroupPermission
 from thingbooker.users.serializers import (
     GroupInviteTokenSerializer,
+    RemoveMemberSerializer,
     ThingbookerGroupSerializer,
     ThingbookerShortUserSerializer,
     ThingbookerUserSerializer,
@@ -108,6 +109,25 @@ class GroupViewSet(viewsets.ModelViewSet):
             return Response(msg, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["POST"], url_path="remove-member")
+    def remove_member(self, request: ThingbookerRequest):
+        """Removes the user (if a membership exists) from the group."""
+
+        group: ThingbookerGroup = self.get_object()
+        serializer = RemoveMemberSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user_to_remove = serializer.save()
+        if not group.members.contains(user_to_remove):
+            return Response(
+                data={"error": "User is not member of group"}, status=status.HTTP_409_CONFLICT
+            )
+
+        group.members.remove(user_to_remove)
+        return Response(data={"message": "User removed from group"}, status=status.HTTP_200_OK)
 
 
 class InviteTokenViewSet(viewsets.ReadOnlyModelViewSet):
